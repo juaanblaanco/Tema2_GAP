@@ -1,0 +1,2335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GAP · Bloque 2.2: Cierre Convexo y Diámetro | Universidad de Sevilla</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    canvas {
+      touch-action: none;
+      user-select: none;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- HEADER ACADÉMICO -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-600/20 border border-rose-400/40 flex items-center justify-center text-amber-300 font-extrabold text-lg shadow-inner shrink-0">
+          US
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
+              Bloque 2 · Sección 2
+            </span>
+            <span class="text-xs text-slate-400">Geometría Aplicada · Grado en Matemáticas</span>
+          </div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white mt-0.5">
+            Cierre Convexo de una Nube de Puntos $CH(S)$ y Cálculo del Diámetro
+          </h1>
+        </div>
+      </div>
+
+      <!-- NAVEGACIÓN DE 5 MÓDULOS -->
+      <nav class="flex flex-wrap bg-slate-800/90 p-1 rounded-xl border border-slate-700 gap-1">
+        <button onclick="switchTab('area')" id="tab-btn-area"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow">
+          1. Área Signada Δ(p₁,p₂,p₃)
+        </button>
+        <button onclick="switchTab('jarvis')" id="tab-btn-jarvis"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white">
+          2. Marcha de Jarvis O(n²)
+        </button>
+        <button onclick="switchTab('graham')" id="tab-btn-graham"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white">
+          3. Scan de Graham O(n log n)
+        </button>
+        <button onclick="switchTab('variants')" id="tab-btn-variants"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white">
+          4. Variantes: Andrew y Akl-Toussaint
+        </button>
+        <button onclick="switchTab('calipers')" id="tab-btn-calipers"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white">
+          5. Diámetro y Girar Calibres O(n)
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 space-y-5">
+
+    <!-- BANNER SÍNTESIS TEÓRICA DE EXAMEN -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-4 shadow-sm border border-indigo-500/30 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider">
+          <span>★ Clave Unificadora del Tema (ResumenTeoria.pdf · Págs. 13–17)</span>
+        </div>
+        <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+          Todos los algoritmos de esta sección evitan medir ángulos con trigonometría. En su lugar, reducen cada decisión geométrica (saber si un punto queda a la izquierda/derecha de una recta, comparar ángulos polares o comparar ángulos entre calibres) al signo del <strong class="text-amber-300">área signada $\Delta(p_1, p_2, p_3)$</strong>.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2 shrink-0 text-xs mono">
+        <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700">
+          <span class="text-slate-400">Fuerza Bruta:</span> <span class="text-rose-300 font-bold">O(n³)</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700">
+          <span class="text-slate-400">Jarvis:</span> <span class="text-amber-300 font-bold">O(n²)</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700">
+          <span class="text-slate-400">Graham / Andrew:</span> <span class="text-emerald-300 font-bold">O(n log n)</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700">
+          <span class="text-slate-400">Girar Calibres:</span> <span class="text-sky-300 font-bold">O(n)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- MÓDULO 1: ÁREA SIGNADA Δ(p1, p2, p3) Y ORIENTACIÓN                   -->
+    <!-- =================================================================== -->
+    <section id="sec-area" class="space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Lienzo tipo GeoGebra interactivo (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                Laboratorio Tipo GeoGebra: Área Signada $\Delta(p_1, p_2, p_3)$
+              </h2>
+              <p class="text-xs text-slate-500">
+                <strong>Arrastra con el ratón</strong> los puntos $p_1$, $p_2$ o $p_3$ sobre el plano cartesiano para observar el cambio de orientación y semiplanos.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="setAreaPreset('positive')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition">
+                Giro Izquierda (Δ &gt; 0)
+              </button>
+              <button onclick="setAreaPreset('negative')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-100 text-rose-800 hover:bg-rose-200 transition">
+                Giro Derecha (Δ &lt; 0)
+              </button>
+              <button onclick="setAreaPreset('collinear')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-100 text-amber-900 hover:bg-amber-200 transition">
+                Alineados (Δ = 0)
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas Interactivo -->
+          <div class="relative bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+            <canvas id="canvas-area" width="680" height="420" class="w-full h-[360px] sm:h-[400px] block cursor-grab active:cursor-grabbing"></canvas>
+          </div>
+
+          <!-- Veredicto instantáneo -->
+          <div id="area-verdict-box" class="rounded-xl p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50 border-emerald-200">
+            <div class="space-y-0.5">
+              <span id="area-verdict-badge" class="text-xs font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded bg-emerald-600 text-white">
+                Δ(p₁, p₂, p₃) &gt; 0 · Orientación Positiva
+              </span>
+              <p id="area-verdict-desc" class="text-xs sm:text-sm text-slate-800 font-medium pt-1">
+                El punto $p_3$ se encuentra en el <strong>semiplano de la izquierda</strong> de la recta orientada $\overrightarrow{p_1 p_2}$ (giro antihorario).
+              </p>
+            </div>
+            <div class="text-right mono shrink-0">
+              <div class="text-xs text-slate-500">Área del triángulo:</div>
+              <div id="area-triangle-val" class="text-base font-extrabold text-slate-900">12.50 u²</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Derecho: Determinante 3x3 en vivo + Chuleta de Uso (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          <!-- Cálculo matricial en vivo -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-900">Definición 2.10 · Determinante en Vivo</h3>
+              <span class="text-xs mono text-indigo-600 font-semibold">$\text{Área} = \frac{1}{2}|\Delta|$</span>
+            </div>
+            <p class="text-xs text-slate-600">
+              Dados $p_1=(x_1,y_1)$, $p_2=(x_2,y_2)$ y $p_3=(x_3,y_3)$, el área signada viene dada por el determinante:
+            </p>
+
+            <div id="area-matrix-box" class="bg-slate-900 text-slate-100 rounded-xl p-4 mono text-xs sm:text-sm overflow-x-auto">
+              <!-- Rellenado dinámicamente -->
+            </div>
+
+            <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 leading-relaxed">
+              <strong>Observación geométrica:</strong> El signo de $\Delta(p_1,p_2,p_3)$ coincide con la tercera componente del producto exterior $\overrightarrow{p_1 p_2} \wedge \overrightarrow{p_1 p_3}$.
+            </div>
+          </div>
+
+          <!-- Cómo se usa Δ en cada algoritmo del Tema 2 -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3 flex-1">
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-600">
+              ★ ¿Dónde aparece $\Delta$ en el ResumenTeoria?
+            </div>
+            <div class="space-y-2.5 text-xs text-slate-700 leading-relaxed">
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <strong class="text-slate-900">1. Teorema 2.6 (Caracterización de Polígono Convexo):</strong><br/>
+                Un polígono $P$ orientado positivamente es convexo $\iff$ toda recta que pase por dos vértices consecutivos deja al siguiente vértice en el semiplano de la izquierda ($\Delta(v_{i-1}, v_i, v_{i+1}) > 0 \iff$ ángulo interior $\le \pi$).
+              </div>
+              <div class="p-2.5 rounded-xl bg-indigo-50/70 border border-indigo-200">
+                <strong class="text-indigo-950">2. Marcha de Jarvis (Comparación angular sin trigonometría):</strong><br/>
+                <span class="mono text-[11px] text-indigo-800">$\measuredangle(\overrightarrow{v_i p_j}, r_i) < \measuredangle(\overrightarrow{v_i p_k}, r_i) \iff \Delta(v_i, p_j, p_k) > 0$</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                <strong class="text-emerald-950">3. Scan de Graham (Eliminación de vértices cóncavos/reflejos):</strong><br/>
+                Mientras <span class="mono text-[11px] text-emerald-800">$\Delta(p, q, v_i) \le 0$</span>, el giro en $q$ es a la derecha (o colineal) y <strong class="text-rose-700">se borra $q$ de $C$</strong>.
+              </div>
+              <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200">
+                <strong class="text-amber-950">4. Girar Calibres (Comparación de ángulos $\alpha$ y $\beta$):</strong><br/>
+                Con $x = p + \overrightarrow{q\,\text{SIG}(q)}$, se cumple <span class="mono text-[11px] text-amber-900">$\alpha < \beta \iff \Delta(p, \text{SIG}(p), x) < 0$</span>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MÓDULO 2: ALGORITMO DE JARVIS O(n²)                                 -->
+    <!-- =================================================================== -->
+    <section id="sec-jarvis" class="hidden space-y-5">
+      <!-- Barra de herramientas de la nube S -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Nube de Puntos $S$:</span>
+          <button onclick="loadCloudPreset('slides9')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm">
+            Ejemplo Clásico (9 puntos)
+          </button>
+          <button onclick="loadCloudPreset('star10')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Nube con Trampas Cóncavas (10 puntos)
+          </button>
+          <button onclick="loadCloudPreset('random')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200">
+            🎲 Generar Nube Aleatoria
+          </button>
+        </div>
+        <div class="text-xs text-slate-500">
+          💡 <strong>Interactivo:</strong> Haz clic en cualquier lugar vacío del lienzo para <strong>añadir un punto</strong> a $S$, o haz clic sobre un punto para borrarlo.
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Lienzo Jarvis (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                Algoritmo de Jarvis (Gift Wrapping / Envoltorio de Regalo)
+              </h2>
+              <p class="text-xs text-slate-500">
+                En cada paso $i$, desde $v_i$ busca el punto $v_{i+1}$ que minimiza el ángulo positivo con el rayo $r_i = \overrightarrow{v_{i-1}v_i}$ usando $\Delta(v_i, p_{\text{mejor}}, p_{\text{cand}}) > 0$.
+              </p>
+            </div>
+            <div class="text-xs mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+              Paso: <strong id="jarvis-step-counter" class="text-indigo-600">0/0</strong>
+            </div>
+          </div>
+
+          <div class="relative bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+            <canvas id="canvas-jarvis" width="680" height="420" class="w-full h-[360px] sm:h-[400px] block cursor-crosshair"></canvas>
+          </div>
+
+          <!-- Explicación del paso actual -->
+          <div class="bg-indigo-50/70 border border-indigo-200/80 rounded-xl p-4 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span id="jarvis-step-badge" class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-md">
+                Inicio
+              </span>
+              <span id="jarvis-delta-pill" class="text-xs mono font-bold text-slate-700"></span>
+            </div>
+            <p id="jarvis-step-desc" class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed"></p>
+          </div>
+
+          <!-- Controles de reproducción -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-1.5">
+              <button onclick="jarvisFirst()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">⏮ Inicio</button>
+              <button onclick="jarvisPrev()" id="jarvis-btn-prev" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40">◀ Ant.</button>
+              <button onclick="jarvisNext()" id="jarvis-btn-next" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm disabled:opacity-40">Sig. ▶</button>
+              <button onclick="jarvisLast()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Fin ⏭</button>
+            </div>
+            <button onclick="jarvisToggleAuto()" id="jarvis-btn-auto" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm">
+              ▶ Play
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Derecho Jarvis (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          <!-- Estado de la lista C -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
+            <h3 class="text-sm font-bold text-slate-900">Estado de la Envolvente $C$ y Variables</h3>
+            <div class="p-3 rounded-xl bg-slate-900 text-white mono text-xs space-y-1.5">
+              <div class="flex justify-between">
+                <span class="text-slate-400">Lista Cíclica $C$:</span>
+                <span id="jarvis-c-list" class="text-amber-300 font-bold">( )</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Vértice Ancla $v_i$:</span>
+                <span id="jarvis-curr-vi" class="text-emerald-300 font-bold">—</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Mejor Candidato Actual ($p_k$):</span>
+                <span id="jarvis-best-cand" class="text-sky-300 font-bold">—</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Punto en Prueba ($p_j$):</span>
+                <span id="jarvis-test-cand" class="text-rose-300 font-bold">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pseudocódigo Oficial ResumenTeoria -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3 flex-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-600">★ Esquema en ResumenTeoria (Pág. 14)</span>
+              <span class="text-xs mono font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">Complejidad: O(n²)</span>
+            </div>
+            <div class="text-xs text-slate-700 space-y-2 leading-relaxed">
+              <p><strong>Paso 0:</strong> Encontrar el punto $v_1 \in S$ con <strong>abscisa mínima</strong> (si hubiera más de uno, el de menor ordenada). Insertar $v_1$ en $C$.</p>
+              <p><strong>Paso $i$:</strong> Encontrar el punto de $S$ que forme el <strong>menor ángulo positivo</strong> con relación al rayo $r_i = \overrightarrow{v_{i-1}v_i}$ (si $i \neq 1$), y si $i = 1$, respecto al rayo vertical $r_1$ que emana de $v_1$ hacia $-\infty$ (si hubiera empate, el más alejado de $v_i$). Ese punto será $v_{i+1}$. Si $v_{i+1} \neq v_1$, insertarlo en $C$ y continuar; en caso contrario, hemos acabado.</p>
+              <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-200 mono text-[11px] text-indigo-950">
+                <strong>Truco de Examen (Cálculo sin ángulos):</strong><br/>
+                $\measuredangle(\overrightarrow{v_i p_j}, r_i) < \measuredangle(\overrightarrow{v_i p_k}, r_i) \iff \Delta(v_i, p_j, p_k) > 0$<br/>
+                Es decir, $p_j$ mejora el ángulo mínimo actual $p_k$ si y solo si al ir de $v_i \to p_k \to p_j$ giramos a la derecha ($\Delta(v_i, p_k, p_j) < 0 \iff \Delta(v_i, p_j, p_k) > 0$).
+              </div>
+              <p class="text-[11px] text-slate-500">
+                <strong>Nota sobre Fuerza Bruta $O(n^3)$ vs Jarvis $O(n^2)$:</strong> Fuerza bruta comprueba para cada una de las $\binom{n}{2}$ parejas si los $n-2$ puntos restantes quedan en el mismo semiplano ($O(n^3)$). Jarvis aprovecha el último vértice hallado para buscar solo el siguiente en $O(n)$ operaciones por vértice.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MÓDULO 3: SCAN DE GRAHAM O(n log n)                                 -->
+    <!-- =================================================================== -->
+    <section id="sec-graham" class="hidden space-y-5">
+      <!-- Barra de herramientas nube S -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Nube de Puntos $S$:</span>
+          <button onclick="loadCloudPreset('slides9')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm">
+            Ejemplo Clásico (9 puntos)
+          </button>
+          <button onclick="loadCloudPreset('star10')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Nube con Retrocesos Múltiples (10 puntos)
+          </button>
+          <button onclick="loadCloudPreset('random')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200">
+            🎲 Generar Nube Aleatoria
+          </button>
+        </div>
+        <div class="text-xs text-slate-500">
+          Observa cómo se construye primero el <strong>polígono estrellado $L$</strong> (línea discontinua) y luego el <strong>Scan</strong> elimina los vértices con $\Delta(p,q,v_i) \le 0$.
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Lienzo Graham (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                Algoritmo Scan de Graham $O(n \log n)$
+              </h2>
+              <p class="text-xs text-slate-500">
+                1º Ordena angularmente respecto a $v_1$ formando un polígono estrellado $L$. 2º Aplica el <em>Scan</em> manteniendo solo giros a la izquierda ($\Delta(p,q,v_i) > 0$).
+              </p>
+            </div>
+            <div class="text-xs mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+              Paso: <strong id="graham-step-counter" class="text-indigo-600">0/0</strong>
+            </div>
+          </div>
+
+          <div class="relative bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+            <canvas id="canvas-graham" width="680" height="420" class="w-full h-[360px] sm:h-[400px] block cursor-crosshair"></canvas>
+          </div>
+
+          <!-- Explicación del paso actual -->
+          <div id="graham-explain-box" class="bg-indigo-50/70 border border-indigo-200/80 rounded-xl p-4 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span id="graham-step-badge" class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-md">
+                Inicio
+              </span>
+              <span id="graham-delta-pill" class="text-xs mono font-bold text-slate-700"></span>
+            </div>
+            <p id="graham-step-desc" class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed"></p>
+          </div>
+
+          <!-- Controles de reproducción -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-1.5">
+              <button onclick="grahamFirst()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">⏮ Inicio</button>
+              <button onclick="grahamPrev()" id="graham-btn-prev" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40">◀ Ant.</button>
+              <button onclick="grahamNext()" id="graham-btn-next" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm disabled:opacity-40">Sig. ▶</button>
+              <button onclick="grahamLast()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Fin ⏭</button>
+            </div>
+            <button onclick="grahamToggleAuto()" id="graham-btn-auto" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm">
+              ▶ Play
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Derecho Graham (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          <!-- Variables en vivo p, q, vi, L, C -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
+            <h3 class="text-sm font-bold text-slate-900">Traza en Vivo del Scan (Variables de Examen)</h3>
+            <div class="p-3.5 rounded-xl bg-slate-900 text-white mono text-xs space-y-2">
+              <div>
+                <span class="text-slate-400 block mb-0.5">Lista Ordenada Angularmente $L$:</span>
+                <span id="graham-l-list" class="text-slate-200 font-semibold break-all">—</span>
+              </div>
+              <div class="border-t border-slate-800 pt-2">
+                <span class="text-slate-400 block mb-0.5">Pila / Lista Solución Actual $C$:</span>
+                <span id="graham-c-list" class="text-amber-300 font-bold text-sm break-all">( )</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-800">
+                <div>
+                  <span class="text-slate-400 block text-[10px]">p := ant(q)</span>
+                  <span id="graham-var-p" class="text-sky-300 font-bold">—</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10px]">q (último en C)</span>
+                  <span id="graham-var-q" class="text-amber-300 font-bold">—</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10px]">Nuevo v_i</span>
+                  <span id="graham-var-vi" class="text-emerald-300 font-bold">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pseudocódigo Literal ResumenTeoria -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-2.5 flex-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-600">★ Pseudocódigo Exacto (Pág. 15)</span>
+              <span class="text-xs mono font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded">O(n log n)</span>
+            </div>
+            <div class="mono text-[11px] bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5 text-slate-800 leading-relaxed">
+              <div><strong>Paso 1:</strong> Hallar $v_1 \in S$ con abscisa mínima (y menor ordenada). Insertar $v_1$ en $C$.</div>
+              <div><strong>Paso 2 (Ordenación):</strong> Ordenar angularmente $S \setminus \{v_1\}$ respecto a $v_1$ y al rayo vertical hacia $-\infty \implies L = (v_1, v_2, \dots, v_n)$.</div>
+              <div><strong>Paso 3:</strong> Insertar $v_2$ en $C$ y hacer $q := v_2$.</div>
+              <div><strong>Paso 4 (Scan):</strong> Desde $i = 3$ hasta $n$:</div>
+              <div class="pl-3">hacer $p := \text{ant}(q)$ (anterior en $C$);</div>
+              <div class="pl-3 text-rose-700 font-semibold">mientras $\Delta(p, q, v_i) \le 0$:</div>
+              <div class="pl-6 text-rose-700">borrar $q$ de $C$ y actualizar $q := p$ y $p := \text{ant}(q)$;</div>
+              <div class="pl-3 text-emerald-700 font-semibold">insertar $v_i$ en $C$ y actualizar $q := v_i$.</div>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              <strong>Observación clave:</strong> Con la ordenación del Paso 2, $L$ describe un <strong>polígono estrellado</strong> respecto a $v_1$, y tenemos garantizado que tanto $v_1$, como $v_2$ y $v_n$ son vértices definitivos de $CH(S)$.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MÓDULO 4: VARIANTES DE ANDREW Y AKL-TOUSSAINT                       -->
+    <!-- =================================================================== -->
+    <section id="sec-variants" class="hidden space-y-5">
+      <!-- Sub-selector de Variante -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Seleccionar Variante:</span>
+          <button onclick="setVariantMode('andrew')" id="btn-var-andrew"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 text-white shadow-sm transition">
+            a) Variante de A.M. Andrew (Cadena Monótona C₁ + C₂)
+          </button>
+          <button onclick="setVariantMode('akl')" id="btn-var-akl"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+            b) Variante de Akl y Toussaint (Poda por Puntos Extremales)
+          </button>
+        </div>
+        <button onclick="loadCloudPreset('random')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 self-start md:self-auto">
+          🎲 Nueva Nube de Puntos
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Lienzo Variantes (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 id="variant-title" class="text-base sm:text-lg font-bold text-slate-900">
+                Scan de Graham — Variante de A.M. Andrew
+              </h2>
+              <p id="variant-subtitle" class="text-xs text-slate-500">
+                Sustituye la ordenación angular por una ordenación por abscisas (polígono monótono respecto a OX), construyendo la cadena inferior C₁ y la superior C₂.
+              </p>
+            </div>
+            <div class="text-xs mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+              Fase / Paso: <strong id="variant-step-counter" class="text-indigo-600">0/0</strong>
+            </div>
+          </div>
+
+          <div class="relative bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+            <canvas id="canvas-variants" width="680" height="420" class="w-full h-[360px] sm:h-[400px] block cursor-crosshair"></canvas>
+          </div>
+
+          <!-- Explicación del paso actual -->
+          <div class="bg-indigo-50/70 border border-indigo-200/80 rounded-xl p-4 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span id="variant-step-badge" class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-md">
+                Fase 1
+              </span>
+              <span id="variant-status-pill" class="text-xs mono font-bold text-slate-700"></span>
+            </div>
+            <p id="variant-step-desc" class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed"></p>
+          </div>
+
+          <!-- Controles de reproducción -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-1.5">
+              <button onclick="variantFirst()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">⏮ Inicio</button>
+              <button onclick="variantPrev()" id="variant-btn-prev" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40">◀ Ant.</button>
+              <button onclick="variantNext()" id="variant-btn-next" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm disabled:opacity-40">Sig. ▶</button>
+              <button onclick="variantLast()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Fin ⏭</button>
+            </div>
+            <button onclick="variantToggleAuto()" id="variant-btn-auto" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm">
+              ▶ Play
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Derecho Variantes (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
+            <h3 class="text-sm font-bold text-slate-900">Estructuras de Datos de la Variante</h3>
+            <div id="variant-state-box" class="space-y-2.5 text-xs mono">
+              <!-- Rellenado dinámicamente -->
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3 flex-1">
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-600">
+              ★ Resumen Teórico (Págs. 15–16)
+            </div>
+            <div id="variant-exam-notes" class="text-xs text-slate-700 space-y-2.5 leading-relaxed">
+              <!-- Rellenado dinámicamente -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MÓDULO 5: DIÁMETRO Y ALGORITMO DE GIRAR CALIBRES O(n)               -->
+    <!-- =================================================================== -->
+    <section id="sec-calipers" class="hidden space-y-5">
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Polígono Convexo $P = CH(S)$:</span>
+          <button onclick="loadCalipersPreset('hexParallel')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm">
+            Polígono con Lados Paralelos (Caso Δ = 0 incluido)
+          </button>
+          <button onclick="loadCalipersPreset('currentCloud')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Usar Cierre Convexo de la Nube Actual
+          </button>
+          <button onclick="loadCalipersPreset('pentagon')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200">
+            Pentágono Irregular (Posición General)
+          </button>
+        </div>
+        <div class="text-xs text-slate-500">
+          Observa el vector trasladado $\color{#7c3aed}{\mathbf{x = p + \overrightarrow{q\,\text{SIG}(q)}}}$ y el triángulo $\Delta(p, \text{SIG}(p), x)$ que decide qué calibre gira.
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Lienzo Girar Calibres (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                Algoritmo de Girar Calibres (Rotating Calipers) — Pares de Antípodas y Diámetro
+              </h2>
+              <p class="text-xs text-slate-500">
+                Compara los ángulos $\alpha$ y $\beta$ de las rectas soporte paralelas usando el signo de $\Delta(p, \text{SIG}(p), x)$ con $x = p + \text{SIG}(q) - q$.
+              </p>
+            </div>
+            <div class="text-xs mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+              Iteración: <strong id="calipers-step-counter" class="text-indigo-600">0/0</strong>
+            </div>
+          </div>
+
+          <div class="relative bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+            <canvas id="canvas-calipers" width="680" height="420" class="w-full h-[360px] sm:h-[400px] block"></canvas>
+          </div>
+
+          <!-- Explicación del paso actual -->
+          <div class="bg-indigo-50/70 border border-indigo-200/80 rounded-xl p-4 space-y-1.5">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span id="calipers-step-badge" class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-md">
+                Inicialización
+              </span>
+              <span id="calipers-delta-pill" class="text-xs mono font-bold text-purple-800 bg-purple-100 px-2.5 py-0.5 rounded"></span>
+            </div>
+            <p id="calipers-step-desc" class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed"></p>
+          </div>
+
+          <!-- Controles de reproducción -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-1.5">
+              <button onclick="calipersFirst()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">⏮ Inicio</button>
+              <button onclick="calipersPrev()" id="calipers-btn-prev" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40">◀ Ant.</button>
+              <button onclick="calipersNext()" id="calipers-btn-next" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm disabled:opacity-40">Sig. ▶</button>
+              <button onclick="calipersLast()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Fin ⏭</button>
+            </div>
+            <button onclick="calipersToggleAuto()" id="calipers-btn-auto" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm">
+              ▶ Play
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Derecho Calibres: Tabla Q de Antípodas y Regla Δ (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          <!-- Tabla de Pares de Antípodas Q y Distancias -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-bold text-slate-900">Lista $Q$ de Parejas de Antípodas</h3>
+              <span id="calipers-diam-badge" class="text-xs mono font-extrabold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-lg border border-emerald-300">
+                diam(S) = —
+              </span>
+            </div>
+            <div class="max-h-48 overflow-y-auto border border-slate-200 rounded-xl">
+              <table class="w-full text-left border-collapse mono text-xs">
+                <thead class="bg-slate-100 text-slate-700 sticky top-0">
+                  <tr>
+                    <th class="py-2 px-3 border-b border-slate-200">#</th>
+                    <th class="py-2 px-3 border-b border-slate-200">Par Antípoda $(p, q)$</th>
+                    <th class="py-2 px-3 border-b border-slate-200">Distancia $d(p, q)$</th>
+                    <th class="py-2 px-3 border-b border-slate-200">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="calipers-q-tbody" class="divide-y divide-slate-100">
+                  <!-- Dinámico -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pseudocódigo Literal Girar Calibres -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-2.5 flex-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-600">★ Algoritmo de Girar Calibres (Pág. 17)</span>
+              <span class="text-xs mono font-bold bg-sky-100 text-sky-900 px-2 py-0.5 rounded">Complejidad: O(n)</span>
+            </div>
+            <div class="mono text-[11px] bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5 text-slate-800 leading-relaxed">
+              <div><strong>Paso 1-3:</strong> $Q := \emptyset$; localizar $x_{\min}, x_{\max}$; hacer $p := x_{\min}, q := x_{\max}$.</div>
+              <div><strong>Paso 4:</strong> Mientras $q \neq x_{\min}$ o $p \neq x_{\max}$ repetir:</div>
+              <div class="pl-3">• introducir en $Q$ el par $(p, q)$;</div>
+              <div class="pl-3 text-purple-800 font-semibold">• hacer $x := p + \overrightarrow{q\,\text{SIG}(q)} = p + \text{SIG}(q) - q$;</div>
+              <div class="pl-3 text-indigo-700">• si $\Delta(p, \text{SIG}(p), x) < 0$ ($\alpha < \beta$): hacer $p := \text{SIG}(p)$;</div>
+              <div class="pl-3 text-emerald-700">• si $\Delta(p, \text{SIG}(p), x) > 0$ ($\alpha > \beta$): hacer $q := \text{SIG}(q)$;</div>
+              <div class="pl-3 text-amber-800">• si $\Delta(p, \text{SIG}(p), x) = 0$ ($\alpha = \beta$): añadir a $Q$ los pares $(p, \text{SIG}(q))$ y $(\text{SIG}(p), q)$ y hacer $p := \text{SIG}(p)$ y $q := \text{SIG}(q)$.</div>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              <strong>Proposiciones 2.7 a 2.9:</strong> El diámetro de $S$ se alcanza siempre entre dos vértices de $CH(S)$ que son <strong>antípodas</strong> (admiten rectas soporte paralelas).
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // UTILIDADES MATEMÁTICAS Y GEOMÉTRICAS (NOTACIÓN EXACTA RESUMENTEORIA)
+    // =========================================================================
+    // Coordenadas matemáticas: X en [0, 20], Y en [0, 12.5] (con eje Y apuntando hacia ARRIBA)
+    const WORLD_X_MIN = 0;
+    const WORLD_X_MAX = 20;
+    const WORLD_Y_MIN = 0;
+    const WORLD_Y_MAX = 12.5;
+
+    function worldToScreen(pt, canvas) {
+      const pad = 36;
+      const w = canvas.width - 2 * pad;
+      const h = canvas.height - 2 * pad;
+      const sx = pad + ((pt.x - WORLD_X_MIN) / (WORLD_X_MAX - WORLD_X_MIN)) * w;
+      const sy = canvas.height - pad - ((pt.y - WORLD_Y_MIN) / (WORLD_Y_MAX - WORLD_Y_MIN)) * h;
+      return { x: sx, y: sy };
+    }
+
+    function screenToWorld(sx, sy, canvas) {
+      const pad = 36;
+      const w = canvas.width - 2 * pad;
+      const h = canvas.height - 2 * pad;
+      const wx = WORLD_X_MIN + ((sx - pad) / w) * (WORLD_X_MAX - WORLD_X_MIN);
+      const wy = WORLD_Y_MIN + ((canvas.height - pad - sy) / h) * (WORLD_Y_MAX - WORLD_Y_MIN);
+      return {
+        x: Math.round(Math.max(1, Math.min(19, wx)) * 2) / 2,
+        y: Math.round(Math.max(1, Math.min(11.5, wy)) * 2) / 2
+      };
+    }
+
+    // Definición 2.10: Área signada Δ(p1, p2, p3)
+    // | 1   1   1  |
+    // | x1  x2  x3 | = (x2 - x1)*(y3 - y1) - (y2 - y1)*(x3 - x1)
+    // | y1  y2  y3 |
+    function signedAreaDelta(p1, p2, p3) {
+      const val = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+      return Math.abs(val) < 1e-9 ? 0 : Math.round(val * 1000) / 1000;
+    }
+
+    function distSq(p1, p2) {
+      return (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2;
+    }
+
+    function euclidDist(p1, p2) {
+      return Math.sqrt(distSq(p1, p2));
+    }
+
+    function drawCartesianGrid(ctx, canvas) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px JetBrains Mono, monospace';
+
+      for (let x = 0; x <= 20; x += 2) {
+        const s0 = worldToScreen({ x, y: WORLD_Y_MIN }, canvas);
+        const s1 = worldToScreen({ x, y: WORLD_Y_MAX }, canvas);
+        ctx.beginPath();
+        ctx.moveTo(s0.x, s0.y);
+        ctx.lineTo(s1.x, s1.y);
+        ctx.stroke();
+        ctx.fillText(x.toString(), s0.x - 5, s0.y + 15);
+      }
+
+      for (let y = 0; y <= 12; y += 2) {
+        const s0 = worldToScreen({ x: WORLD_X_MIN, y }, canvas);
+        const s1 = worldToScreen({ x: WORLD_X_MAX, y }, canvas);
+        ctx.beginPath();
+        ctx.moveTo(s0.x, s0.y);
+        ctx.lineTo(s1.x, s1.y);
+        ctx.stroke();
+        ctx.fillText(y.toString(), s0.x - 20, s0.y + 4);
+      }
+    }
+
+    function drawArrow(ctx, fromS, toS, color, width = 2.5, dashed = false) {
+      const headlen = 10;
+      const dx = toS.x - fromS.x;
+      const dy = toS.y - fromS.y;
+      const angle = Math.atan2(dy, dx);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) ctx.setLineDash([6, 4]);
+
+      ctx.beginPath();
+      ctx.moveTo(fromS.x, fromS.y);
+      ctx.lineTo(toS.x, toS.y);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(toS.x, toS.y);
+      ctx.lineTo(toS.x - headlen * Math.cos(angle - Math.PI / 6), toS.y - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(toS.x - headlen * Math.cos(angle + Math.PI / 6), toS.y - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawPointNode(ctx, canvas, pt, label, bg = '#0f172a', fg = '#ffffff', radius = 12, sublabel = '') {
+      const s = worldToScreen(pt, canvas);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = bg;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      ctx.fillStyle = fg;
+      ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, s.x, s.y);
+
+      if (sublabel) {
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '600 10px Inter, sans-serif';
+        ctx.fillText(sublabel, s.x, s.y - radius - 8);
+      }
+      ctx.restore();
+    }
+
+    // =========================================================================
+    // CONTROL DE NAVEGACIÓN ENTRE PESTAÑAS
+    // =========================================================================
+    let activeTab = 'area';
+    let jarvisTimer = null;
+    let grahamTimer = null;
+    let variantTimer = null;
+    let calipersTimer = null;
+
+    function stopAllTimers() {
+      if (jarvisTimer) { clearInterval(jarvisTimer); jarvisTimer = null; updatePlayBtn('jarvis-btn-auto', false); }
+      if (grahamTimer) { clearInterval(grahamTimer); grahamTimer = null; updatePlayBtn('graham-btn-auto', false); }
+      if (variantTimer) { clearInterval(variantTimer); variantTimer = null; updatePlayBtn('variant-btn-auto', false); }
+      if (calipersTimer) { clearInterval(calipersTimer); calipersTimer = null; updatePlayBtn('calipers-btn-auto', false); }
+    }
+
+    function updatePlayBtn(btnId, playing) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      if (playing) {
+        btn.textContent = '⏸ Pausa';
+        btn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 shadow-sm';
+      } else {
+        btn.textContent = '▶ Play';
+        btn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm';
+      }
+    }
+
+    function switchTab(tab) {
+      stopAllTimers();
+      activeTab = tab;
+      const tabs = ['area', 'jarvis', 'graham', 'variants', 'calipers'];
+      tabs.forEach(t => {
+        const sec = document.getElementById(`sec-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tab) {
+          sec.classList.remove('hidden');
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow';
+        } else {
+          sec.classList.add('hidden');
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white';
+        }
+      });
+
+      if (tab === 'area') renderAreaModule();
+      if (tab === 'jarvis') renderJarvisStep();
+      if (tab === 'graham') renderGrahamStep();
+      if (tab === 'variants') renderVariantStep();
+      if (tab === 'calipers') renderCalipersStep();
+    }
+
+    // =========================================================================
+    // MÓDULO 1: ÁREA SIGNADA Δ(p1, p2, p3) INTERACTIVO
+    // =========================================================================
+    let areaPoints = [
+      { id: 'p₁', x: 5.0, y: 4.0, color: '#2563eb' },
+      { id: 'p₂', x: 14.0, y: 4.5, color: '#4f46e5' },
+      { id: 'p₃', x: 9.0, y: 9.5, color: '#10b981' }
+    ];
+    let draggingAreaIdx = -1;
+
+    function setAreaPreset(type) {
+      if (type === 'positive') {
+        areaPoints[0].x = 5.0; areaPoints[0].y = 4.0;
+        areaPoints[1].x = 14.0; areaPoints[1].y = 4.5;
+        areaPoints[2].x = 9.0; areaPoints[2].y = 9.5;
+      } else if (type === 'negative') {
+        areaPoints[0].x = 5.0; areaPoints[0].y = 8.0;
+        areaPoints[1].x = 14.5; areaPoints[1].y = 8.0;
+        areaPoints[2].x = 10.0; areaPoints[2].y = 3.0;
+      } else {
+        areaPoints[0].x = 4.0; areaPoints[0].y = 3.0;
+        areaPoints[1].x = 10.0; areaPoints[1].y = 6.0;
+        areaPoints[2].x = 16.0; areaPoints[2].y = 9.0;
+      }
+      renderAreaModule();
+    }
+
+    function renderAreaModule() {
+      const canvas = document.getElementById('canvas-area');
+      const ctx = canvas.getContext('2d');
+      drawCartesianGrid(ctx, canvas);
+
+      const [p1, p2, p3] = areaPoints;
+      const delta = signedAreaDelta(p1, p2, p3);
+      const areaVal = 0.5 * Math.abs(delta);
+
+      const s1 = worldToScreen(p1, canvas);
+      const s2 = worldToScreen(p2, canvas);
+      const s3 = worldToScreen(p3, canvas);
+
+      // Dibujar recta infinita que pasa por p1 y p2
+      const dx = s2.x - s1.x;
+      const dy = s2.y - s1.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const ux = dx / len;
+      const uy = dy / len;
+
+      ctx.save();
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(s1.x - ux * 1000, s1.y - uy * 1000);
+      ctx.lineTo(s1.x + ux * 1000, s1.y + uy * 1000);
+      ctx.stroke();
+      ctx.restore();
+
+      // Etiquetas de Semiplano Izquierdo (+) y Derecho (-)
+      const midX = (s1.x + s2.x) / 2;
+      const midY = (s1.y + s2.y) / 2;
+      // En pantalla (con Y hacia abajo), el vector normal a la izquierda de p1->p2 es (uy, -ux)
+      const leftNx = uy;
+      const leftNy = -ux;
+
+      ctx.save();
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#059669';
+      ctx.fillText('Semiplano Izquierdo (Δ > 0 · Giro +)', midX + leftNx * 55, midY + leftNy * 55);
+      ctx.fillStyle = '#e11d48';
+      ctx.fillText('Semiplano Derecho (Δ < 0 · Giro -)', midX - leftNx * 55, midY - leftNy * 55);
+      ctx.restore();
+
+      // Rellenar triángulo p1 p2 p3
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(s1.x, s1.y);
+      ctx.lineTo(s2.x, s2.y);
+      ctx.lineTo(s3.x, s3.y);
+      ctx.closePath();
+      if (delta > 0) {
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
+        ctx.strokeStyle = '#10b981';
+      } else if (delta < 0) {
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.18)';
+        ctx.strokeStyle = '#f43f5e';
+      } else {
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
+        ctx.strokeStyle = '#f59e0b';
+      }
+      ctx.lineWidth = 2;
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      // Vector orientado p1 -> p2 y p2 -> p3
+      drawArrow(ctx, s1, s2, '#1e293b', 3, false);
+      drawArrow(ctx, s2, s3, delta > 0 ? '#059669' : delta < 0 ? '#e11d48' : '#d97706', 2.5, true);
+
+      // Dibujar los 3 vértices arrastrables
+      drawPointNode(ctx, canvas, p1, 'p₁', '#1d4ed8', '#ffffff', 14, `(${p1.x}, ${p1.y})`);
+      drawPointNode(ctx, canvas, p2, 'p₂', '#4338ca', '#ffffff', 14, `(${p2.x}, ${p2.y})`);
+      drawPointNode(ctx, canvas, p3, 'p₃', delta > 0 ? '#059669' : delta < 0 ? '#e11d48' : '#d97706', '#ffffff', 15, `(${p3.x}, ${p3.y})`);
+
+      // Actualizar panel matricial
+      const matBox = document.getElementById('area-matrix-box');
+      matBox.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div>Δ(p₁, p₂, p₃) = det <span class="text-amber-300">[ [1, 1, 1], [${p1.x}, ${p2.x}, ${p3.x}], [${p1.y}, ${p2.y}, ${p3.y}] ]</span></div>
+            <div class="text-slate-400 mt-1">= (${p2.x} - ${p1.x})·(${p3.y} - ${p1.y}) - (${p2.y} - ${p1.y})·(${p3.x} - ${p1.x})</div>
+          </div>
+          <div class="text-right shrink-0">
+            <span class="text-xs text-slate-400 block">Valor de Δ:</span>
+            <span class="text-lg font-extrabold ${delta > 0 ? 'text-emerald-400' : delta < 0 ? 'text-rose-400' : 'text-amber-300'}">
+              ${delta > 0 ? '+' : ''}${delta.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      `;
+
+      // Actualizar caja de veredicto
+      const vBox = document.getElementById('area-verdict-box');
+      const vBadge = document.getElementById('area-verdict-badge');
+      const vDesc = document.getElementById('area-verdict-desc');
+      document.getElementById('area-triangle-val').textContent = `${areaVal.toFixed(2)} u²`;
+
+      if (delta > 0) {
+        vBox.className = 'rounded-xl p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50 border-emerald-200';
+        vBadge.className = 'text-xs font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded bg-emerald-600 text-white';
+        vBadge.textContent = `Δ(p₁, p₂, p₃) = +${delta.toFixed(2)} > 0 · Orientación Positiva`;
+        vDesc.innerHTML = 'El punto <strong>p₃ está en el semiplano de la izquierda</strong> de la recta orientada p₁ → p₂. La terna (p₁, p₂, p₃) gira en sentido positivo (antihorario).';
+      } else if (delta < 0) {
+        vBox.className = 'rounded-xl p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-rose-50 border-rose-200';
+        vBadge.className = 'text-xs font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded bg-rose-600 text-white';
+        vBadge.textContent = `Δ(p₁, p₂, p₃) = ${delta.toFixed(2)} < 0 · Orientación Negativa`;
+        vDesc.innerHTML = 'El punto <strong>p₃ está en el semiplano de la derecha</strong> de la recta orientada p₁ → p₂. La terna (p₁, p₂, p₃) gira en sentido negativo (horario).';
+      } else {
+        vBox.className = 'rounded-xl p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-amber-50 border-amber-200';
+        vBadge.className = 'text-xs font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded bg-amber-500 text-slate-950';
+        vBadge.textContent = 'Δ(p₁, p₂, p₃) = 0 · Puntos Alineados (Colineales)';
+        vDesc.innerHTML = 'Los puntos p₁, p₂ y p₃ están sobre la misma recta y el triángulo degenera (Área = 0).';
+      }
+    }
+
+    function setupAreaCanvasEvents() {
+      const canvas = document.getElementById('canvas-area');
+      const getMousePos = e => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+      };
+
+      const onDown = e => {
+        const pos = getMousePos(e);
+        for (let i = 0; i < areaPoints.length; i++) {
+          const s = worldToScreen(areaPoints[i], canvas);
+          if (Math.hypot(pos.x - s.x, pos.y - s.y) < 22) {
+            draggingAreaIdx = i;
+            e.preventDefault();
+            break;
+          }
+        }
+      };
+
+      const onMove = e => {
+        if (draggingAreaIdx === -1) return;
+        e.preventDefault();
+        const pos = getMousePos(e);
+        const w = screenToWorld(pos.x, pos.y, canvas);
+        areaPoints[draggingAreaIdx].x = w.x;
+        areaPoints[draggingAreaIdx].y = w.y;
+        renderAreaModule();
+      };
+
+      const onUp = () => { draggingAreaIdx = -1; };
+
+      canvas.addEventListener('mousedown', onDown);
+      canvas.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      canvas.addEventListener('touchstart', onDown, { passive: false });
+      canvas.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend', onUp);
+    }
+
+    // =========================================================================
+    // NUBE DE PUNTOS COMPARTIDA S PARA MÓDULOS 2, 3 Y 4
+    // =========================================================================
+    let pointCloud = [];
+
+    function loadCloudPreset(preset) {
+      stopAllTimers();
+      if (preset === 'slides9') {
+        pointCloud = [
+          { x: 2.5, y: 6.0 },
+          { x: 5.5, y: 2.0 },
+          { x: 6.5, y: 5.5 },
+          { x: 5.0, y: 9.5 },
+          { x: 9.5, y: 7.0 },
+          { x: 11.0, y: 1.5 },
+          { x: 12.5, y: 10.5 },
+          { x: 14.0, y: 5.0 },
+          { x: 17.5, y: 6.5 }
+        ];
+      } else if (preset === 'star10') {
+        pointCloud = [
+          { x: 2.0, y: 5.5 },
+          { x: 6.0, y: 1.5 },
+          { x: 7.5, y: 4.5 },
+          { x: 6.5, y: 7.0 },
+          { x: 11.5, y: 2.0 },
+          { x: 16.5, y: 3.0 },
+          { x: 13.0, y: 6.5 },
+          { x: 17.5, y: 9.0 },
+          { x: 10.5, y: 10.5 },
+          { x: 5.0, y: 10.0 }
+        ];
+      } else {
+        // Nube aleatoria bien espaciada en posición general
+        const pts = [];
+        while (pts.length < 10) {
+          const cand = {
+            x: Math.round((2 + Math.random() * 16) * 2) / 2,
+            y: Math.round((1.5 + Math.random() * 9.5) * 2) / 2
+          };
+          if (pts.every(p => Math.hypot(p.x - cand.x, p.y - cand.y) > 1.8)) {
+            pts.push(cand);
+          }
+        }
+        pointCloud = pts;
+      }
+      relabelPointCloud();
+      rebuildAllCloudSimulations();
+    }
+
+    function relabelPointCloud() {
+      pointCloud.forEach((p, idx) => {
+        p.id = `p${idx + 1}`;
+      });
+    }
+
+    function setupCloudCanvasClick(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      canvas.addEventListener('click', e => {
+        const rect = canvas.getBoundingClientRect();
+        const sx = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const sy = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+        // Si hace clic sobre un punto existente y hay más de 4 puntos, lo elimina
+        for (let i = 0; i < pointCloud.length; i++) {
+          const sp = worldToScreen(pointCloud[i], canvas);
+          if (Math.hypot(sx - sp.x, sy - sp.y) < 16) {
+            if (pointCloud.length > 4) {
+              pointCloud.splice(i, 1);
+              relabelPointCloud();
+              rebuildAllCloudSimulations();
+            }
+            return;
+          }
+        }
+
+        if (pointCloud.length < 16) {
+          const w = screenToWorld(sx, sy, canvas);
+          pointCloud.push({ x: w.x, y: w.y });
+          relabelPointCloud();
+          rebuildAllCloudSimulations();
+        }
+      });
+    }
+
+    function rebuildAllCloudSimulations() {
+      buildJarvisSimulation();
+      buildGrahamSimulation();
+      buildVariantSimulation();
+      if (activeTab === 'jarvis') renderJarvisStep();
+      if (activeTab === 'graham') renderGrahamStep();
+      if (activeTab === 'variants') renderVariantStep();
+    }
+
+    // =========================================================================
+    // MÓDULO 2: MARCHA DE JARVIS O(n²)
+    // =========================================================================
+    let jarvisSteps = [];
+    let jarvisIdx = 0;
+
+    function findMinXPoint(pts) {
+      let best = pts[0];
+      for (let i = 1; i < pts.length; i++) {
+        if (pts[i].x < best.x || (pts[i].x === best.x && pts[i].y < best.y)) {
+          best = pts[i];
+        }
+      }
+      return best;
+    }
+
+    function buildJarvisSimulation() {
+      const S = pointCloud.map(p => ({ ...p }));
+      const steps = [];
+      const v1 = findMinXPoint(S);
+      const C = [v1];
+
+      steps.push({
+        C: [...C],
+        vi: v1,
+        bestCand: null,
+        testCand: null,
+        deltaVal: null,
+        badge: 'Paso 0 · Localizar v₁ (Abscisa Mínima)',
+        desc: `Localizamos el punto de S con abscisa mínima (a igualdad, menor ordenada): es ${v1.id} = (${v1.x}, ${v1.y}). Lo insertamos como v₁ en C y trazamos el rayo vertical r₁ hacia -∞.`
+      });
+
+      let current = v1;
+      let stepNum = 1;
+      let safety = 0;
+
+      while (safety < S.length + 2) {
+        safety++;
+        const others = S.filter(p => p.id !== current.id);
+        let best = others[0];
+
+        steps.push({
+          C: [...C],
+          vi: current,
+          bestCand: best,
+          testCand: null,
+          deltaVal: null,
+          badge: `Paso ${stepNum} · Ancla en v_${stepNum} = ${current.id}`,
+          desc: `Tomamos provisionalmente ${best.id} como candidato a minimizar el ángulo positivo respecto al rayo r_${stepNum}. Ahora lo comparamos con el resto de puntos de S usando áreas signadas.`
+        });
+
+        for (let j = 1; j < others.length; j++) {
+          const cand = others[j];
+          // En ResumenTeoria: angle(vi->pj, ri) < angle(vi->pk, ri) <=> Δ(vi, pj, pk) > 0
+          const d = signedAreaDelta(current, cand, best);
+          const candIsBetter = d > 0 || (d === 0 && distSq(current, cand) > distSq(current, best));
+
+          steps.push({
+            C: [...C],
+            vi: current,
+            bestCand: best,
+            testCand: cand,
+            deltaVal: d,
+            badge: `Paso ${stepNum} · Comparando ${cand.id} frente a ${best.id}`,
+            desc: `Calculamos Δ(${current.id}, ${cand.id}, ${best.id}) = ${d.toFixed(2)}. ${
+              candIsBetter
+                ? `Como Δ > 0, el rayo hacia ${cand.id} forma un ángulo positivo MENOR que hacia ${best.id} (${cand.id} queda a la derecha de ${current.id}→${best.id}). ¡Actualizamos mejor candidato a ${cand.id}!`
+                : `Como Δ < 0, ${best.id} sigue teniendo menor ángulo positivo que ${cand.id}.`
+            }`
+          });
+
+          if (candIsBetter) {
+            best = cand;
+          }
+        }
+
+        if (best.id === v1.id) {
+          steps.push({
+            C: [...C],
+            vi: current,
+            bestCand: best,
+            testCand: null,
+            deltaVal: null,
+            closed: true,
+            badge: '¡Envolvente Cerrada (v_{i+1} = v₁)!',
+            desc: `El punto que minimiza el ángulo desde ${current.id} vuelve a ser el punto inicial v₁ = ${v1.id}. El algoritmo de Jarvis termina devolviendo C = (${C.map(p => p.id).join(', ')}).`
+          });
+          break;
+        } else {
+          C.push(best);
+          steps.push({
+            C: [...C],
+            vi: current,
+            bestCand: best,
+            testCand: null,
+            deltaVal: null,
+            badge: `Paso ${stepNum} Completado · Nuevo vértice v_${stepNum + 1} = ${best.id}`,
+            desc: `Ningún punto queda a la derecha de ${current.id} → ${best.id}. Insertamos ${best.id} en la lista C y avanzamos el rayo.`
+          });
+          current = best;
+          stepNum++;
+        }
+      }
+
+      jarvisSteps = steps;
+      jarvisIdx = 0;
+    }
+
+    function renderJarvisStep() {
+      const canvas = document.getElementById('canvas-jarvis');
+      const ctx = canvas.getContext('2d');
+      drawCartesianGrid(ctx, canvas);
+
+      const step = jarvisSteps[jarvisIdx];
+      document.getElementById('jarvis-step-counter').textContent = `${jarvisIdx}/${jarvisSteps.length - 1}`;
+      document.getElementById('jarvis-step-badge').textContent = step.badge;
+      document.getElementById('jarvis-step-desc').textContent = step.desc;
+      document.getElementById('jarvis-delta-pill').textContent =
+        step.deltaVal !== null ? `Δ(${step.vi.id}, ${step.testCand.id}, ${step.bestCand.id}) = ${step.deltaVal > 0 ? '+' : ''}${step.deltaVal.toFixed(2)}` : '';
+
+      document.getElementById('jarvis-c-list').textContent = `(${step.C.map(p => p.id).join(', ')})`;
+      document.getElementById('jarvis-curr-vi').textContent = step.vi ? `${step.vi.id} (${step.vi.x}, ${step.vi.y})` : '—';
+      document.getElementById('jarvis-best-cand').textContent = step.bestCand ? `${step.bestCand.id} (${step.bestCand.x}, ${step.bestCand.y})` : '—';
+      document.getElementById('jarvis-test-cand').textContent = step.testCand ? `${step.testCand.id} (${step.testCand.x}, ${step.testCand.y})` : '—';
+
+      // Dibujar rayo de referencia r_i
+      if (step.vi) {
+        const svi = worldToScreen(step.vi, canvas);
+        ctx.save();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        if (step.C.length === 1) {
+          // Rayo r1 vertical hacia -infinito (hacia abajo en pantalla)
+          ctx.moveTo(svi.x, svi.y);
+          ctx.lineTo(svi.x, canvas.height - 15);
+        } else {
+          const prev = step.C[step.C.length - 2];
+          const sprev = worldToScreen(prev, canvas);
+          const dx = svi.x - sprev.x;
+          const dy = svi.y - sprev.y;
+          ctx.moveTo(svi.x, svi.y);
+          ctx.lineTo(svi.x + dx * 3, svi.y + dy * 3);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Dibujar cadena confirmada en C
+      if (step.C.length > 1) {
+        ctx.save();
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        const s0 = worldToScreen(step.C[0], canvas);
+        ctx.moveTo(s0.x, s0.y);
+        for (let i = 1; i < step.C.length; i++) {
+          const si = worldToScreen(step.C[i], canvas);
+          ctx.lineTo(si.x, si.y);
+        }
+        if (step.closed) {
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+          ctx.fill();
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Dibujar rayo al mejor candidato actual y al candidato en prueba
+      if (step.vi && step.bestCand) {
+        const svi = worldToScreen(step.vi, canvas);
+        const sbest = worldToScreen(step.bestCand, canvas);
+        drawArrow(ctx, svi, sbest, '#0284c7', 2.8, false);
+      }
+      if (step.vi && step.testCand) {
+        const svi = worldToScreen(step.vi, canvas);
+        const stest = worldToScreen(step.testCand, canvas);
+        drawArrow(ctx, svi, stest, '#e11d48', 2.2, true);
+      }
+
+      // Dibujar todos los puntos de S
+      pointCloud.forEach(p => {
+        const inC = step.C.some(c => c.id === p.id);
+        const isVi = step.vi && step.vi.id === p.id;
+        const isBest = step.bestCand && step.bestCand.id === p.id;
+        const isTest = step.testCand && step.testCand.id === p.id;
+
+        let bg = '#475569';
+        let radius = 11;
+        if (isVi) { bg = '#4f46e5'; radius = 14; }
+        else if (isTest) { bg = '#e11d48'; radius = 13; }
+        else if (isBest) { bg = '#0284c7'; radius = 13; }
+        else if (inC) { bg = '#059669'; radius = 12; }
+
+        drawPointNode(ctx, canvas, p, p.id, bg, '#ffffff', radius);
+      });
+
+      document.getElementById('jarvis-btn-prev').disabled = jarvisIdx === 0;
+      document.getElementById('jarvis-btn-next').disabled = jarvisIdx === jarvisSteps.length - 1;
+    }
+
+    function jarvisFirst() { stopAllTimers(); jarvisIdx = 0; renderJarvisStep(); }
+    function jarvisLast() { stopAllTimers(); jarvisIdx = jarvisSteps.length - 1; renderJarvisStep(); }
+    function jarvisPrev() { if (jarvisIdx > 0) { jarvisIdx--; renderJarvisStep(); } }
+    function jarvisNext() { if (jarvisIdx < jarvisSteps.length - 1) { jarvisIdx++; renderJarvisStep(); } else stopAllTimers(); }
+    function jarvisToggleAuto() {
+      if (jarvisTimer) {
+        stopAllTimers();
+      } else {
+        if (jarvisIdx === jarvisSteps.length - 1) jarvisIdx = 0;
+        updatePlayBtn('jarvis-btn-auto', true);
+        jarvisTimer = setInterval(() => {
+          if (jarvisIdx < jarvisSteps.length - 1) { jarvisIdx++; renderJarvisStep(); }
+          else stopAllTimers();
+        }, 700);
+      }
+    }
+
+    // =========================================================================
+    // MÓDULO 3: SCAN DE GRAHAM O(n log n)
+    // =========================================================================
+    let grahamSteps = [];
+    let grahamIdx = 0;
+
+    function buildGrahamSimulation() {
+      const S = pointCloud.map(p => ({ ...p }));
+      const steps = [];
+
+      // Paso 1: v1 con abscisa mínima (y menor ordenada)
+      const v1 = findMinXPoint(S);
+      const others = S.filter(p => p.id !== v1.id);
+
+      // Paso 2: Ordenar angularmente respecto a v1 y al rayo vertical hacia -infinito
+      // Usamos Δ(v1, a, b) > 0 <=> a tiene menor ángulo positivo que b
+      others.sort((a, b) => {
+        const d = signedAreaDelta(v1, a, b);
+        if (d !== 0) return d > 0 ? -1 : 1;
+        return distSq(v1, a) - distSq(v1, b);
+      });
+
+      const L = [v1, ...others];
+      L.forEach((pt, idx) => { pt.vLabel = `v${idx + 1}`; });
+
+      steps.push({
+        L,
+        C: [v1],
+        p: null,
+        q: null,
+        vi: null,
+        delta: null,
+        showStarPolygon: false,
+        badge: 'Paso 1 · Localizar v₁ (Abscisa Mínima)',
+        desc: `Localizamos el punto con menor abscisa: ${v1.id} = (${v1.x}, ${v1.y}), lo renombramos como v₁ y lo insertamos en C.`
+      });
+
+      steps.push({
+        L,
+        C: [v1],
+        p: null,
+        q: null,
+        vi: null,
+        delta: null,
+        showStarPolygon: true,
+        badge: 'Paso 2 (Ordenación) · Polígono Estrellado L',
+        desc: `Ordenamos angularmente el resto de puntos respecto a v₁ y al rayo vertical hacia -∞ usando Δ(v₁, p_j, p_k) > 0. Obtenemos la lista L = (${L.map(x => x.vLabel).join(', ')}) que describe un polígono estrellado.`
+      });
+
+      const C = [L[0], L[1]];
+      steps.push({
+        L,
+        C: [...C],
+        p: L[0],
+        q: L[1],
+        vi: null,
+        delta: null,
+        showStarPolygon: true,
+        badge: 'Paso 3 · Insertar v₂ en C y hacer q := v₂',
+        desc: `Insertamos v₂ (${L[1].id}) en C y fijamos q := v₂. Observación de examen: tanto v₁ como v₂ y v_n están garantizados en la envolvente convexa.`
+      });
+
+      // Paso 4 (Scan): Desde i = 3 hasta n (índices 2 hasta L.length - 1)
+      for (let i = 2; i < L.length; i++) {
+        const vi = L[i];
+        let q = C[C.length - 1];
+        let p = C[C.length - 2];
+
+        while (true) {
+          const d = signedAreaDelta(p, q, vi);
+          if (d <= 0) {
+            steps.push({
+              L,
+              C: [...C],
+              p,
+              q,
+              vi,
+              delta: d,
+              isReflex: true,
+              showStarPolygon: true,
+              badge: `Paso 4 (i=${i + 1}) · ¡Giro NO Convexo en ${q.vLabel}! (Δ ≤ 0)`,
+              desc: `Evaluamos Δ(${p.vLabel}, ${q.vLabel}, ${vi.vLabel}) = ${d.toFixed(2)} ≤ 0. La terna (${p.vLabel}, ${q.vLabel}, ${vi.vLabel}) gira a la derecha (ángulo interior > π en ${q.vLabel}). Borramos ${q.vLabel} de C y retrocedemos q := ${p.vLabel}.`
+            });
+            C.pop();
+            q = C[C.length - 1];
+            p = C[C.length - 2];
+          } else {
+            steps.push({
+              L,
+              C: [...C],
+              p,
+              q,
+              vi,
+              delta: d,
+              isReflex: false,
+              showStarPolygon: true,
+              badge: `Paso 4 (i=${i + 1}) · Giro a la Izquierda Válido (Δ > 0)`,
+              desc: `Evaluamos Δ(${p.vLabel}, ${q.vLabel}, ${vi.vLabel}) = +${d.toFixed(2)} > 0. Como ${vi.vLabel} queda a la izquierda de ${p.vLabel}→${q.vLabel}, insertamos ${vi.vLabel} en C y actualizamos q := ${vi.vLabel}.`
+            });
+            C.push(vi);
+            break;
+          }
+        }
+      }
+
+      steps.push({
+        L,
+        C: [...C],
+        p: null,
+        q: null,
+        vi: null,
+        delta: null,
+        closed: true,
+        showStarPolygon: true,
+        badge: '¡Scan de Graham Completado en O(n log n)!',
+        desc: `Se han eliminado todos los vértices cóncavos de L. La lista cíclica final con los vértices de CH(S) en sentido positivo es C = (${C.map(x => x.vLabel).join(', ')}).`
+      });
+
+      grahamSteps = steps;
+      grahamIdx = 0;
+    }
+
+    function renderGrahamStep() {
+      const canvas = document.getElementById('canvas-graham');
+      const ctx = canvas.getContext('2d');
+      drawCartesianGrid(ctx, canvas);
+
+      const step = grahamSteps[grahamIdx];
+      document.getElementById('graham-step-counter').textContent = `${grahamIdx}/${grahamSteps.length - 1}`;
+      document.getElementById('graham-step-badge').textContent = step.badge;
+      document.getElementById('graham-step-desc').textContent = step.desc;
+
+      const deltaPill = document.getElementById('graham-delta-pill');
+      if (step.delta !== null) {
+        deltaPill.textContent = `Δ(${step.p.vLabel}, ${step.q.vLabel}, ${step.vi.vLabel}) = ${step.delta > 0 ? '+' : ''}${step.delta.toFixed(2)}`;
+        deltaPill.className = step.delta > 0
+          ? 'text-xs mono font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded'
+          : 'text-xs mono font-bold text-rose-800 bg-rose-100 px-2.5 py-0.5 rounded';
+      } else {
+        deltaPill.textContent = '';
+        deltaPill.className = 'text-xs mono font-bold';
+      }
+
+      document.getElementById('graham-l-list').textContent = `(${step.L.map(x => `${x.vLabel}:${x.id}`).join(', ')})`;
+      document.getElementById('graham-c-list').textContent = `(${step.C.map(x => x.vLabel).join(', ')})`;
+      document.getElementById('graham-var-p').textContent = step.p ? `${step.p.vLabel} (${step.p.id})` : '—';
+      document.getElementById('graham-var-q').textContent = step.q ? `${step.q.vLabel} (${step.q.id})` : '—';
+      document.getElementById('graham-var-vi').textContent = step.vi ? `${step.vi.vLabel} (${step.vi.id})` : '—';
+
+      // 1. Dibujar polígono estrellado L en línea discontinua
+      if (step.showStarPolygon) {
+        ctx.save();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        step.L.forEach((pt, idx) => {
+          const s = worldToScreen(pt, canvas);
+          if (idx === 0) ctx.moveTo(s.x, s.y);
+          else ctx.lineTo(s.x, s.y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 2. Dibujar triángulo de prueba Δ(p, q, vi)
+      if (step.p && step.q && step.vi) {
+        const sp = worldToScreen(step.p, canvas);
+        const sq = worldToScreen(step.q, canvas);
+        const svi = worldToScreen(step.vi, canvas);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(sp.x, sp.y);
+        ctx.lineTo(sq.x, sq.y);
+        ctx.lineTo(svi.x, svi.y);
+        ctx.closePath();
+        ctx.fillStyle = step.isReflex ? 'rgba(244, 63, 94, 0.22)' : 'rgba(16, 185, 129, 0.22)';
+        ctx.fill();
+        ctx.restore();
+
+        drawArrow(ctx, sp, sq, '#0284c7', 3, false);
+        drawArrow(ctx, sq, svi, step.isReflex ? '#e11d48' : '#059669', 3, true);
+      }
+
+      // 3. Dibujar cadena actual en C
+      if (step.C.length > 1) {
+        ctx.save();
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        step.C.forEach((pt, idx) => {
+          const s = worldToScreen(pt, canvas);
+          if (idx === 0) ctx.moveTo(s.x, s.y);
+          else ctx.lineTo(s.x, s.y);
+        });
+        if (step.closed) {
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+          ctx.fill();
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 4. Dibujar nodos con su orden angular v_k
+      step.L.forEach(pt => {
+        const inC = step.C.some(c => c.id === pt.id);
+        const isP = step.p && step.p.id === pt.id;
+        const isQ = step.q && step.q.id === pt.id;
+        const isVi = step.vi && step.vi.id === pt.id;
+
+        let bg = '#64748b';
+        let radius = 12;
+        if (isQ) { bg = step.isReflex ? '#e11d48' : '#d97706'; radius = 14; }
+        else if (isVi) { bg = '#4f46e5'; radius = 14; }
+        else if (isP) { bg = '#0284c7'; radius = 13; }
+        else if (inC) { bg = '#059669'; radius = 12; }
+
+        drawPointNode(ctx, canvas, pt, pt.vLabel, bg, '#ffffff', radius, pt.id);
+      });
+
+      document.getElementById('graham-btn-prev').disabled = grahamIdx === 0;
+      document.getElementById('graham-btn-next').disabled = grahamIdx === grahamSteps.length - 1;
+    }
+
+    function grahamFirst() { stopAllTimers(); grahamIdx = 0; renderGrahamStep(); }
+    function grahamLast() { stopAllTimers(); grahamIdx = grahamSteps.length - 1; renderGrahamStep(); }
+    function grahamPrev() { if (grahamIdx > 0) { grahamIdx--; renderGrahamStep(); } }
+    function grahamNext() { if (grahamIdx < grahamSteps.length - 1) { grahamIdx++; renderGrahamStep(); } else stopAllTimers(); }
+    function grahamToggleAuto() {
+      if (grahamTimer) {
+        stopAllTimers();
+      } else {
+        if (grahamIdx === grahamSteps.length - 1) grahamIdx = 0;
+        updatePlayBtn('graham-btn-auto', true);
+        grahamTimer = setInterval(() => {
+          if (grahamIdx < grahamSteps.length - 1) { grahamIdx++; renderGrahamStep(); }
+          else stopAllTimers();
+        }, 850);
+      }
+    }
+
+    // =========================================================================
+    // MÓDULO 4: VARIANTES DE ANDREW Y AKL-TOUSSAINT
+    // =========================================================================
+    let variantMode = 'andrew'; // 'andrew' | 'akl'
+    let variantSteps = [];
+    let variantIdx = 0;
+
+    function scanChainHelper(list) {
+      if (list.length <= 2) return [...list];
+      const chain = [list[0], list[1]];
+      for (let i = 2; i < list.length; i++) {
+        const vi = list[i];
+        while (chain.length >= 2 && signedAreaDelta(chain[chain.length - 2], chain[chain.length - 1], vi) <= 0) {
+          chain.pop();
+        }
+        chain.push(vi);
+      }
+      return chain;
+    }
+
+    function buildAndrewSteps() {
+      const S = pointCloud.map(p => ({ ...p }));
+      const steps = [];
+
+      // Paso 1: Ordenar por abscisas (a igualdad, por ordenadas)
+      const L = [...S].sort((a, b) => a.x !== b.x ? a.x - b.x : a.y - b.y);
+
+      steps.push({
+        mode: 'andrew',
+        L,
+        C1: [],
+        C2: [],
+        showMonotone: true,
+        badge: 'Paso 1 · Ordenar por Abscisas (Polígono Monótono)',
+        status: `L = (${L.map(p => p.id).join(', ')})`,
+        desc: 'Ordenamos los puntos de S por abscisa creciente (y menor ordenada en caso de empate). Obtenemos la lista L que describe una cadena monótona respecto al eje OX, sin necesidad de calcular ángulos.'
+      });
+
+      // Paso 2: Scan en L para cadena inferior C1
+      const C1 = [L[0], L[1]];
+      for (let i = 2; i < L.length; i++) {
+        const vi = L[i];
+        while (C1.length >= 2 && signedAreaDelta(C1[C1.length - 2], C1[C1.length - 1], vi) <= 0) {
+          const removed = C1.pop();
+          steps.push({
+            mode: 'andrew',
+            L,
+            C1: [...C1],
+            C2: [],
+            activePt: vi,
+            badge: `Paso 2 (Cadena Inferior C₁) · Borrar ${removed.id} (Δ ≤ 0)`,
+            status: `C₁ = (${C1.map(p => p.id).join(', ')})`,
+            desc: `Al procesar ${vi.id}, el giro en ${removed.id} era hacia la derecha (Δ ≤ 0). Eliminamos ${removed.id} de la cadena inferior C₁.`
+          });
+        }
+        C1.push(vi);
+        steps.push({
+          mode: 'andrew',
+          L,
+          C1: [...C1],
+          C2: [],
+          activePt: vi,
+          badge: `Paso 2 (Cadena Inferior C₁) · Insertar ${vi.id}`,
+          status: `C₁ = (${C1.map(p => p.id).join(', ')})`,
+          desc: `Giro positivo verificado. Añadimos ${vi.id} a la cadena inferior C₁.`
+        });
+      }
+
+      // Paso 3: Invertir L -> L' y aplicar Scan para cadena superior C2
+      const Lrev = [...L].reverse();
+      const C2 = [Lrev[0], Lrev[1]];
+      steps.push({
+        mode: 'andrew',
+        L,
+        C1: [...C1],
+        C2: [...C2],
+        badge: 'Paso 3 · Invertir Lista (L′) para la Cadena Superior C₂',
+        status: `L′ comienza en x_max = ${Lrev[0].id}`,
+        desc: 'Invertimos el orden de L obteniendo L′ (de derecha a izquierda) y aplicamos el mismo Scan de Graham para construir la cadena superior C₂.'
+      });
+
+      for (let i = 2; i < Lrev.length; i++) {
+        const vi = Lrev[i];
+        while (C2.length >= 2 && signedAreaDelta(C2[C2.length - 2], C2[C2.length - 1], vi) <= 0) {
+          C2.pop();
+        }
+        C2.push(vi);
+        steps.push({
+          mode: 'andrew',
+          L,
+          C1: [...C1],
+          C2: [...C2],
+          activePt: vi,
+          badge: `Paso 3 (Cadena Superior C₂) · Avance hasta ${vi.id}`,
+          status: `C₂ = (${C2.map(p => p.id).join(', ')})`,
+          desc: `Aplicando el scan sobre L′ de derecha a izquierda mantenemos solo giros a la izquierda para formar el techo superior C₂.`
+        });
+      }
+
+      const finalC = [...C1, ...C2.slice(1, C2.length - 1)];
+      steps.push({
+        mode: 'andrew',
+        L,
+        C1: [...C1],
+        C2: [...C2],
+        finalC,
+        badge: 'Paso 4 · Concatenar C₁ y C₂ sin repetir extremos',
+        status: `C = (${finalC.map(p => p.id).join(', ')})`,
+        desc: `Concatenamos la cadena inferior C₁ (azul) y la cadena superior C₂ (naranja) eliminando la duplicidad de x_min y x_max.`
+      });
+
+      return steps;
+    }
+
+    function pointInConvexPolygon(pt, poly) {
+      if (poly.length < 3) return false;
+      for (let i = 0; i < poly.length; i++) {
+        const a = poly[i];
+        const b = poly[(i + 1) % poly.length];
+        if (signedAreaDelta(a, b, pt) <= 0) return false;
+      }
+      return true;
+    }
+
+    function buildAklSteps() {
+      const S = pointCloud.map(p => ({ ...p }));
+      const steps = [];
+
+      // Paso 1: Localizar los 4 puntos extremales xmin, ymin, xmax, ymax
+      let xmin = S[0], ymin = S[0], xmax = S[0], ymax = S[0];
+      S.forEach(p => {
+        if (p.x < xmin.x || (p.x === xmin.x && p.y < xmin.y)) xmin = p;
+        if (p.y < ymin.y || (p.y === ymin.y && p.x > ymin.x)) ymin = p;
+        if (p.x > xmax.x || (p.x === xmax.x && p.y > ymax.y)) xmax = p;
+        if (p.y > ymax.y || (p.y === ymax.y && p.x < xmin.x)) ymax = p;
+      });
+
+      const rawExtremals = [xmin, ymin, xmax, ymax];
+      const extremals = [];
+      rawExtremals.forEach(e => {
+        if (!extremals.some(x => x.id === e.id)) extremals.push(e);
+      });
+
+      steps.push({
+        mode: 'akl',
+        extremals,
+        discarded: [],
+        hull: [],
+        badge: 'Paso 1 · Localizar los 4 Puntos Extremales',
+        status: `x_min=${xmin.id}, y_min=${ymin.id}, x_max=${xmax.id}, y_max=${ymax.id}`,
+        desc: `Localizamos los puntos con abscisas y ordenadas mínimas y máximas. Sabemos con total seguridad que forman parte de CH(S), por lo que el polígono P que determinan está contenido en CH(S).`
+      });
+
+      // Paso 2: Eliminar todos los puntos interiores a P
+      const discarded = S.filter(p => !extremals.some(e => e.id === p.id) && pointInConvexPolygon(p, extremals));
+      const survivors = S.filter(p => !discarded.some(d => d.id === p.id));
+
+      steps.push({
+        mode: 'akl',
+        extremals,
+        discarded,
+        survivors,
+        hull: [],
+        badge: `Paso 2 · Poda de Puntos Interiores a P (${discarded.length} descartados)`,
+        status: `Descartados: ${discarded.length ? discarded.map(d => d.id).join(', ') : 'Ninguno'}`,
+        desc: `Por la Proposición 2.4, P ⊆ CH(S). Por tanto, cualquier punto estrictamente interior al polígono extremal P (${discarded.length ? discarded.map(d => d.id).join(', ') : 'ninguno en esta nube'}) NO puede ser vértice de CH(S) y se descarta en tiempo O(n) antes de ordenar.`
+      });
+
+      // Paso 3, 4 y 5: Clasificar puntos exteriores por regiones, ordenar por abscisas y aplicar Scan
+      const L = [...survivors].sort((a, b) => a.x !== b.x ? a.x - b.x : a.y - b.y);
+      const C1 = scanChainHelper(L);
+      const C2 = scanChainHelper([...L].reverse());
+      const finalHull = [...C1, ...C2.slice(1, C2.length - 1)];
+
+      steps.push({
+        mode: 'akl',
+        extremals,
+        discarded,
+        survivors,
+        hull: finalHull,
+        badge: 'Pasos 3–5 · Clasificar Regiones Exteriores, Scan y Concatenar',
+        status: `C = (${finalHull.map(p => p.id).join(', ')})`,
+        desc: `Los puntos supervivientes exteriores a cada lado de P se ordenan por abscisas en sus respectivas regiones (1 a 4), se les aplica el Scan de Graham y se concatenan las cadenas eliminando repeticiones de los puntos extremales.`
+      });
+
+      return steps;
+    }
+
+    function buildVariantSimulation() {
+      variantSteps = variantMode === 'andrew' ? buildAndrewSteps() : buildAklSteps();
+      variantIdx = 0;
+      updateVariantExamNotes();
+    }
+
+    function updateVariantExamNotes() {
+      const box = document.getElementById('variant-exam-notes');
+      if (variantMode === 'andrew') {
+        box.innerHTML = `
+          <p><strong class="text-slate-900">¿Por qué funciona la Variante de Andrew?</strong> Un polígono convexo es <strong>monótono</strong> respecto de cualquier dirección (en particular, respecto al eje $OX$). Por tanto, su frontera se descompone en dos cadenas monótonas: la inferior $C_1$ y la superior $C_2$.</p>
+          <p><strong class="text-slate-900">Ventaja práctica:</strong> En el Paso 1 ordenamos directamente por coordenada $x$ ($x_i < x_j$) en lugar de ordenar por ángulos respecto a $v_1$.</p>
+        `;
+      } else {
+        box.innerHTML = `
+          <p><strong class="text-slate-900">Idea de Akl y Toussaint:</strong> Localizar en $O(n)$ los 4 puntos extremales ($x_{\\min}, y_{\\min}, x_{\\max}, y_{\\max}$). Como pertenecen seguro a la envolvente convexa, el cuadrilátero $P$ que forman verifica $P \\subseteq CH(S)$.</p>
+          <p><strong class="text-slate-900">Ahorro computacional:</strong> Todo punto $q \\in S$ interior a $P$ cumple $\\Delta > 0$ respecto a los 4 lados orientados de $P$ y se elimina inmediatamente sin entrar en la fase $O(n \\log n)$ de ordenación.</p>
+        `;
+      }
+    }
+
+    function renderVariantStep() {
+      const canvas = document.getElementById('canvas-variants');
+      const ctx = canvas.getContext('2d');
+      drawCartesianGrid(ctx, canvas);
+
+      const step = variantSteps[variantIdx];
+      document.getElementById('variant-step-counter').textContent = `${variantIdx}/${variantSteps.length - 1}`;
+      document.getElementById('variant-step-badge').textContent = step.badge;
+      document.getElementById('variant-status-pill').textContent = step.status;
+      document.getElementById('variant-step-desc').textContent = step.desc;
+
+      const stateBox = document.getElementById('variant-state-box');
+
+      if (step.mode === 'andrew') {
+        document.getElementById('variant-title').textContent = 'Scan de Graham — Variante de A.M. Andrew (Cadenas Monótonas)';
+        document.getElementById('variant-subtitle').textContent = 'Ordena S por abscisas (L), obtiene la cadena inferior C₁ (azul) y la cadena superior C₂ (naranja) sobre L′.';
+
+        // Polígono monótono en gris discontinuo
+        ctx.save();
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        step.L.forEach((p, i) => {
+          const s = worldToScreen(p, canvas);
+          if (i === 0) ctx.moveTo(s.x, s.y);
+          else ctx.lineTo(s.x, s.y);
+        });
+        ctx.stroke();
+        ctx.restore();
+
+        // Cadena inferior C1 en azul
+        if (step.C1.length > 1) {
+          ctx.save();
+          ctx.strokeStyle = '#2563eb';
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          step.C1.forEach((p, i) => {
+            const s = worldToScreen(p, canvas);
+            if (i === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          });
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Cadena superior C2 en naranja
+        if (step.C2.length > 1) {
+          ctx.save();
+          ctx.strokeStyle = '#ea580c';
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          step.C2.forEach((p, i) => {
+            const s = worldToScreen(p, canvas);
+            if (i === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          });
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        pointCloud.forEach(p => {
+          const inC1 = step.C1.some(x => x.id === p.id);
+          const inC2 = step.C2.some(x => x.id === p.id);
+          let bg = '#64748b';
+          if (inC1 && inC2) bg = '#7c3aed';
+          else if (inC1) bg = '#2563eb';
+          else if (inC2) bg = '#ea580c';
+          drawPointNode(ctx, canvas, p, p.id, bg, '#ffffff', 12);
+        });
+
+        stateBox.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="font-bold text-slate-700">Lista ordenada por Abscisas $L$:</div>
+            <div class="text-slate-600 mt-0.5">(${step.L.map(p => p.id).join(', ')})</div>
+          </div>
+          <div class="p-3 rounded-xl bg-blue-50 border border-blue-200">
+            <div class="font-bold text-blue-900">Cadena Inferior $C_1$ (Scan sobre $L$):</div>
+            <div class="text-blue-800 font-bold mt-0.5">(${step.C1.map(p => p.id).join(', ')})</div>
+          </div>
+          <div class="p-3 rounded-xl bg-orange-50 border border-orange-200">
+            <div class="font-bold text-orange-900">Cadena Superior $C_2$ (Scan sobre $L'$):</div>
+            <div class="text-orange-800 font-bold mt-0.5">(${step.C2.map(p => p.id).join(', ')})</div>
+          </div>
+        `;
+      } else {
+        document.getElementById('variant-title').textContent = 'Scan de Graham — Variante de Akl y Toussaint (Poda Extremal)';
+        document.getElementById('variant-subtitle').textContent = 'Descarta inmediatamente los puntos interiores al polígono extremal P = conv(x_min, y_min, x_max, y_max).';
+
+        // Dibujar polígono extremal P en ámbar
+        if (step.extremals.length >= 3) {
+          ctx.save();
+          ctx.beginPath();
+          step.extremals.forEach((p, i) => {
+            const s = worldToScreen(p, canvas);
+            if (i === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          });
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(245, 158, 11, 0.16)';
+          ctx.fill();
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 2.5;
+          ctx.setLineDash([6, 4]);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Si ya tenemos el cierre final
+        if (step.hull && step.hull.length > 2) {
+          ctx.save();
+          ctx.beginPath();
+          step.hull.forEach((p, i) => {
+            const s = worldToScreen(p, canvas);
+            if (i === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          });
+          ctx.closePath();
+          ctx.strokeStyle = '#059669';
+          ctx.lineWidth = 3.5;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        pointCloud.forEach(p => {
+          const isExt = step.extremals.some(e => e.id === p.id);
+          const isDisc = step.discarded.some(d => d.id === p.id);
+          const inHull = step.hull && step.hull.some(h => h.id === p.id);
+
+          let bg = '#475569';
+          if (isExt) bg = '#d97706';
+          else if (inHull) bg = '#059669';
+          else if (isDisc) bg = '#cbd5e1';
+
+          drawPointNode(ctx, canvas, p, p.id, bg, isDisc ? '#64748b' : '#ffffff', 12, isDisc ? 'DESCARTADO' : isExt ? 'EXTREMAL' : '');
+        });
+
+        stateBox.innerHTML = `
+          <div class="p-3 rounded-xl bg-amber-50 border border-amber-200">
+            <div class="font-bold text-amber-950">Polígono Extremal $P$:</div>
+            <div class="text-amber-900 font-bold mt-0.5">(${step.extremals.map(p => p.id).join(', ')})</div>
+          </div>
+          <div class="p-3 rounded-xl bg-rose-50 border border-rose-200">
+            <div class="font-bold text-rose-900">Puntos Interiores Eliminados en Paso 2:</div>
+            <div class="text-rose-800 font-bold mt-0.5">${step.discarded.length ? step.discarded.map(p => p.id).join(', ') : 'Ninguno'}</div>
+          </div>
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+            <div class="font-bold text-emerald-900">Envolvente Resultante $C$:</div>
+            <div class="text-emerald-800 font-bold mt-0.5">${step.hull.length ? `(${step.hull.map(p => p.id).join(', ')})` : 'Pendiente del Scan'}</div>
+          </div>
+        `;
+      }
+
+      document.getElementById('variant-btn-prev').disabled = variantIdx === 0;
+      document.getElementById('variant-btn-next').disabled = variantIdx === variantSteps.length - 1;
+    }
+
+    function setVariantMode(mode) {
+      stopAllTimers();
+      variantMode = mode;
+      document.getElementById('btn-var-andrew').className = mode === 'andrew'
+        ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 text-white shadow-sm transition'
+        : 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+      document.getElementById('btn-var-akl').className = mode === 'akl'
+        ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 text-white shadow-sm transition'
+        : 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+      buildVariantSimulation();
+      renderVariantStep();
+    }
+
+    function variantFirst() { stopAllTimers(); variantIdx = 0; renderVariantStep(); }
+    function variantLast() { stopAllTimers(); variantIdx = variantSteps.length - 1; renderVariantStep(); }
+    function variantPrev() { if (variantIdx > 0) { variantIdx--; renderVariantStep(); } }
+    function variantNext() { if (variantIdx < variantSteps.length - 1) { variantIdx++; renderVariantStep(); } else stopAllTimers(); }
+    function variantToggleAuto() {
+      if (variantTimer) stopAllTimers();
+      else {
+        if (variantIdx === variantSteps.length - 1) variantIdx = 0;
+        updatePlayBtn('variant-btn-auto', true);
+        variantTimer = setInterval(() => {
+          if (variantIdx < variantSteps.length - 1) { variantIdx++; renderVariantStep(); }
+          else stopAllTimers();
+        }, 900);
+      }
+    }
+
+    // =========================================================================
+    // MÓDULO 5: DIÁMETRO Y ALGORITMO DE GIRAR CALIBRES O(n)
+    // =========================================================================
+    let calipersPoly = [];
+    let calipersSteps = [];
+    let calipersIdx = 0;
+
+    function loadCalipersPreset(preset) {
+      stopAllTimers();
+      if (preset === 'hexParallel') {
+        // Polígono convexo en orientación positiva con un par de lados paralelos para mostrar Δ = 0
+        calipersPoly = [
+          { id: 'v₁', x: 3.0, y: 6.0 },
+          { id: 'v₂', x: 6.5, y: 2.0 },
+          { id: 'v₃', x: 12.5, y: 2.0 },
+          { id: 'v₄', x: 17.0, y: 6.5 },
+          { id: 'v₅', x: 13.5, y: 10.5 },
+          { id: 'v₆', x: 7.5, y: 10.5 }
+        ];
+      } else if (preset === 'pentagon') {
+        calipersPoly = [
+          { id: 'v₁', x: 3.0, y: 5.5 },
+          { id: 'v₂', x: 7.5, y: 1.8 },
+          { id: 'v₃', x: 15.0, y: 3.0 },
+          { id: 'v₄', x: 17.0, y: 8.5 },
+          { id: 'v₅', x: 8.5, y: 10.8 }
+        ];
+      } else {
+        // Obtener el cierre convexo de pointCloud actual
+        const L = [...pointCloud].sort((a, b) => a.x !== b.x ? a.x - b.x : a.y - b.y);
+        const c1 = scanChainHelper(L);
+        const c2 = scanChainHelper([...L].reverse());
+        const hull = [...c1, ...c2.slice(1, c2.length - 1)];
+        calipersPoly = hull.map((p, idx) => ({ id: `v${idx + 1}`, x: p.x, y: p.y }));
+      }
+      buildCalipersSimulation();
+      renderCalipersStep();
+    }
+
+    function buildCalipersSimulation() {
+      const P = calipersPoly;
+      const n = P.length;
+      const steps = [];
+
+      // Localizar xmin y xmax
+      let pIdx = 0, qIdx = 0;
+      for (let i = 1; i < n; i++) {
+        if (P[i].x < P[pIdx].x || (P[i].x === P[pIdx].x && P[i].y < P[pIdx].y)) pIdx = i;
+        if (P[i].x > P[qIdx].x || (P[i].x === P[qIdx].x && P[i].y > P[qIdx].y)) qIdx = i;
+      }
+
+      const startP = pIdx;
+      const startQ = qIdx;
+      const Q = [];
+
+      const addPairToQ = (a, b) => {
+        const exists = Q.some(pair => (pair.p.id === a.id && pair.q.id === b.id) || (pair.p.id === b.id && pair.q.id === a.id));
+        if (!exists) {
+          Q.push({ p: a, q: b, dist: euclidDist(a, b) });
+        }
+      };
+
+      steps.push({
+        pIdx,
+        qIdx,
+        sigPIdx: (pIdx + 1) % n,
+        sigQIdx: (qIdx + 1) % n,
+        xPt: null,
+        delta: null,
+        caliperDir: { x: 0, y: -1 },
+        Q: [...Q],
+        badge: 'Pasos 1–3 · Inicializar p := x_min y q := x_max',
+        desc: `Localizamos x_min = ${P[pIdx].id} y x_max = ${P[qIdx].id}. Colocamos dos rectas soporte verticales paralelas pasando por p y q.`
+      });
+
+      let iter = 0;
+      while ((qIdx !== startP || pIdx !== startQ) && iter < 2 * n + 2) {
+        iter++;
+        const p = P[pIdx];
+        const q = P[qIdx];
+        const sigPIdx = (pIdx + 1) % n;
+        const sigQIdx = (qIdx + 1) % n;
+        const sigP = P[sigPIdx];
+        const sigQ = P[sigQIdx];
+
+        addPairToQ(p, q);
+
+        // x := p + SIG(q) - q
+        const xPt = {
+          x: Math.round((p.x + sigQ.x - q.x) * 100) / 100,
+          y: Math.round((p.y + sigQ.y - q.y) * 100) / 100
+        };
+
+        const d = signedAreaDelta(p, sigP, xPt);
+
+        // Dirección visual para las rectas soporte paralelas en este paso
+        let dir;
+        if (d < 0) {
+          dir = { x: sigP.x - p.x, y: sigP.y - p.y };
+        } else {
+          dir = { x: q.x - sigQ.x, y: q.y - sigQ.y };
+        }
+
+        if (d < 0) {
+          steps.push({
+            pIdx,
+            qIdx,
+            sigPIdx,
+            sigQIdx,
+            xPt,
+            delta: d,
+            caliperDir: dir,
+            Q: [...Q],
+            badge: `Iteración ${iter} · Δ(${p.id}, ${sigP.id}, x) < 0 ⇒ Avanzar p := ${sigP.id}`,
+            desc: `Introducimos (${p.id}, ${q.id}) en Q. Calculamos x = ${p.id} + (${sigQ.id} - ${q.id}) = (${xPt.x}, ${xPt.y}). Como Δ(${p.id}, ${sigP.id}, x) = ${d.toFixed(2)} < 0, el ángulo α en p es menor que β en q: giramos los calibres hasta apoyarse en la arista ${p.id}${sigP.id} y hacemos p := ${sigP.id}.`
+          });
+          pIdx = sigPIdx;
+        } else if (d > 0) {
+          steps.push({
+            pIdx,
+            qIdx,
+            sigPIdx,
+            sigQIdx,
+            xPt,
+            delta: d,
+            caliperDir: dir,
+            Q: [...Q],
+            badge: `Iteración ${iter} · Δ(${p.id}, ${sigP.id}, x) > 0 ⇒ Avanzar q := ${sigQ.id}`,
+            desc: `Introducimos (${p.id}, ${q.id}) en Q. Calculamos x = ${p.id} + (${sigQ.id} - ${q.id}) = (${xPt.x}, ${xPt.y}). Como Δ(${p.id}, ${sigP.id}, x) = +${d.toFixed(2)} > 0, el ángulo β en q es menor que α en p: giramos los calibres hasta apoyarse en la arista ${q.id}${sigQ.id} y hacemos q := ${sigQ.id}.`
+          });
+          qIdx = sigQIdx;
+        } else {
+          addPairToQ(p, sigQ);
+          addPairToQ(sigP, q);
+          steps.push({
+            pIdx,
+            qIdx,
+            sigPIdx,
+            sigQIdx,
+            xPt,
+            delta: 0,
+            caliperDir: dir,
+            Q: [...Q],
+            badge: `Iteración ${iter} · Δ = 0 (Aristas Paralelas) ⇒ Avanzar p y q`,
+            desc: `¡Caso especial de examen! Δ(${p.id}, ${sigP.id}, x) = 0 (α = β, las aristas ${p.id}${sigP.id} y ${q.id}${sigQ.id} son paralelas). Añadimos a Q los pares cruzados (${p.id}, ${sigQ.id}) y (${sigP.id}, ${q.id}), y avanzamos simultáneamente p := ${sigP.id} y q := ${sigQ.id}.`
+          });
+          pIdx = sigPIdx;
+          qIdx = sigQIdx;
+        }
+      }
+
+      addPairToQ(P[pIdx], P[qIdx]);
+      let maxPair = Q[0];
+      Q.forEach(item => { if (item.dist > maxPair.dist) maxPair = item; });
+
+      steps.push({
+        pIdx,
+        qIdx,
+        sigPIdx: (pIdx + 1) % n,
+        sigQIdx: (qIdx + 1) % n,
+        xPt: null,
+        delta: null,
+        caliperDir: { x: 0, y: 1 },
+        Q: [...Q],
+        maxPair,
+        finished: true,
+        badge: `¡Algoritmo Terminado! diam(S) = d(${maxPair.p.id}, ${maxPair.q.id}) = ${maxPair.dist.toFixed(2)}`,
+        desc: `Se ha alcanzado la condición de parada (q = x_min y p = x_max). Entre las ${Q.length} parejas de antípodas halladas en O(n), la mayor distancia corresponde al par (${maxPair.p.id}, ${maxPair.q.id}) con diam(S) = ${maxPair.dist.toFixed(2)}.`
+      });
+
+      calipersSteps = steps;
+      calipersIdx = 0;
+    }
+
+    function renderCalipersStep() {
+      const canvas = document.getElementById('canvas-calipers');
+      const ctx = canvas.getContext('2d');
+      drawCartesianGrid(ctx, canvas);
+
+      const step = calipersSteps[calipersIdx];
+      const P = calipersPoly;
+      const p = P[step.pIdx];
+      const q = P[step.qIdx];
+      const sigP = P[step.sigPIdx];
+      const sigQ = P[step.sigQIdx];
+
+      document.getElementById('calipers-step-counter').textContent = `${calipersIdx}/${calipersSteps.length - 1}`;
+      document.getElementById('calipers-step-badge').textContent = step.badge;
+      document.getElementById('calipers-step-desc').textContent = step.desc;
+
+      const dPill = document.getElementById('calipers-delta-pill');
+      if (step.delta !== null) {
+        dPill.textContent = `Δ(${p.id}, ${sigP.id}, x) = ${step.delta > 0 ? '+' : ''}${step.delta.toFixed(2)}`;
+      } else {
+        dPill.textContent = 'Rectas soporte paralelas';
+      }
+
+      // 1. Dibujar el polígono convexo P
+      ctx.save();
+      ctx.beginPath();
+      P.forEach((v, idx) => {
+        const s = worldToScreen(v, canvas);
+        if (idx === 0) ctx.moveTo(s.x, s.y);
+        else ctx.lineTo(s.x, s.y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(99, 102, 241, 0.08)';
+      ctx.fill();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.restore();
+
+      // 2. Dibujar las dos rectas soporte paralelas (calibres) pasando por p y q
+      const sp = worldToScreen(p, canvas);
+      const sq = worldToScreen(q, canvas);
+      const pDirEnd = worldToScreen({ x: p.x + step.caliperDir.x, y: p.y + step.caliperDir.y }, canvas);
+      const dx = pDirEnd.x - sp.x;
+      const dy = pDirEnd.y - sp.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const ux = dx / len;
+      const uy = dy / len;
+
+      ctx.save();
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([7, 5]);
+      ctx.beginPath();
+      ctx.moveTo(sp.x - ux * 1000, sp.y - uy * 1000);
+      ctx.lineTo(sp.x + ux * 1000, sp.y + uy * 1000);
+      ctx.moveTo(sq.x - ux * 1000, sq.y - uy * 1000);
+      ctx.lineTo(sq.x + ux * 1000, sq.y + uy * 1000);
+      ctx.stroke();
+      ctx.restore();
+
+      // 3. Dibujar segmento antípoda actual (p, q)
+      ctx.save();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(sp.x, sp.y);
+      ctx.lineTo(sq.x, sq.y);
+      ctx.stroke();
+      ctx.restore();
+
+      // 4. Si hay punto auxiliar x = p + SIG(q) - q, dibujar triángulo Δ(p, SIG(p), x)
+      if (step.xPt) {
+        const sSigP = worldToScreen(sigP, canvas);
+        const sSigQ = worldToScreen(sigQ, canvas);
+        const sx = worldToScreen(step.xPt, canvas);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(sp.x, sp.y);
+        ctx.lineTo(sSigP.x, sSigP.y);
+        ctx.lineTo(sx.x, sx.y);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(124, 58, 237, 0.18)';
+        ctx.fill();
+        ctx.restore();
+
+        // Vector original q -> SIG(q) y su traslación p -> x
+        drawArrow(ctx, sq, sSigQ, '#7c3aed', 3, false);
+        drawArrow(ctx, sp, sx, '#7c3aed', 2.5, true);
+        drawArrow(ctx, sp, sSigP, '#1d4ed8', 3, false);
+
+        drawPointNode(ctx, canvas, step.xPt, 'x', '#7c3aed', '#ffffff', 11, 'p + SIG(q) - q');
+      }
+
+      // Si hemos terminado, resaltar el diámetro máximo en verde
+      if (step.maxPair) {
+        const sm1 = worldToScreen(step.maxPair.p, canvas);
+        const sm2 = worldToScreen(step.maxPair.q, canvas);
+        ctx.save();
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 4.5;
+        ctx.beginPath();
+        ctx.moveTo(sm1.x, sm1.y);
+        ctx.lineTo(sm2.x, sm2.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 5. Dibujar vértices de P
+      P.forEach((v, idx) => {
+        const isP = idx === step.pIdx;
+        const isQ = idx === step.qIdx;
+        let bg = '#1e293b';
+        let sub = '';
+        if (isP) { bg = '#1d4ed8'; sub = 'p'; }
+        if (isQ) { bg = '#d97706'; sub = 'q'; }
+        drawPointNode(ctx, canvas, v, v.id, bg, '#ffffff', isP || isQ ? 14 : 11, sub);
+      });
+
+      // 6. Actualizar tabla de pares de antípodas Q
+      let maxD = 0;
+      step.Q.forEach(item => { if (item.dist > maxD) maxD = item.dist; });
+      document.getElementById('calipers-diam-badge').textContent =
+        maxD > 0 ? `Máx actual = ${maxD.toFixed(2)}` : 'diam(S) = —';
+
+      const tbody = document.getElementById('calipers-q-tbody');
+      tbody.innerHTML = step.Q.map((item, i) => {
+        const isMax = Math.abs(item.dist - maxD) < 1e-6;
+        return `
+          <tr class="${isMax ? 'bg-emerald-50 font-bold' : ''}">
+            <td class="py-1.5 px-3 text-slate-400">${i + 1}</td>
+            <td class="py-1.5 px-3 text-slate-900">(${item.p.id}, ${item.q.id})</td>
+            <td class="py-1.5 px-3 ${isMax ? 'text-emerald-700 font-extrabold' : 'text-slate-700'}">${item.dist.toFixed(2)}</td>
+            <td class="py-1.5 px-3">${isMax ? '<span class="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px]">MÁXIMO</span>' : '<span class="text-slate-400">Antípodas</span>'}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('calipers-btn-prev').disabled = calipersIdx === 0;
+      document.getElementById('calipers-btn-next').disabled = calipersIdx === calipersSteps.length - 1;
+    }
+
+    function calipersFirst() { stopAllTimers(); calipersIdx = 0; renderCalipersStep(); }
+    function calipersLast() { stopAllTimers(); calipersIdx = calipersSteps.length - 1; renderCalipersStep(); }
+    function calipersPrev() { if (calipersIdx > 0) { calipersIdx--; renderCalipersStep(); } }
+    function calipersNext() { if (calipersIdx < calipersSteps.length - 1) { calipersIdx++; renderCalipersStep(); } else stopAllTimers(); }
+    function calipersToggleAuto() {
+      if (calipersTimer) stopAllTimers();
+      else {
+        if (calipersIdx === calipersSteps.length - 1) calipersIdx = 0;
+        updatePlayBtn('calipers-btn-auto', true);
+        calipersTimer = setInterval(() => {
+          if (calipersIdx < calipersSteps.length - 1) { calipersIdx++; renderCalipersStep(); }
+          else stopAllTimers();
+        }, 1050);
+      }
+    }
+
+    // =========================================================================
+    // INICIALIZACIÓN GLOBAL
+    // =========================================================================
+    window.onload = function () {
+      setupAreaCanvasEvents();
+      setupCloudCanvasClick('canvas-jarvis');
+      setupCloudCanvasClick('canvas-graham');
+      setupCloudCanvasClick('canvas-variants');
+      loadCloudPreset('slides9');
+      loadCalipersPreset('hexParallel');
+      renderAreaModule();
+    };
+  </script>
+</body>
+</html>

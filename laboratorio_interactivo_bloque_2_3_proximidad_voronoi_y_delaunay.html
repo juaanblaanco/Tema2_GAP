@@ -1,0 +1,2192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GAP · Bloque 2.3: Problemas de Proximidad, Voronoi y Delaunay | Universidad de Sevilla</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    canvas {
+      touch-action: none;
+      user-select: none;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- HEADER ACADÉMICO -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-extrabold text-lg shadow-inner shrink-0">
+          GAP
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
+              Bloque 2 · Sección 3
+            </span>
+            <span class="text-xs text-slate-400">Grado en Matemáticas · Universidad de Sevilla</span>
+          </div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white mt-0.5">
+            Problemas de Proximidad, Diagrama de Voronoi $\operatorname{Vor}(S)$ y Triangulación de Delaunay
+          </h1>
+        </div>
+      </div>
+
+      <!-- PESTAÑAS DE NAVEGACIÓN (4 MÓDULOS) -->
+      <nav class="flex flex-wrap bg-slate-800/90 p-1 rounded-xl border border-slate-700 gap-1">
+        <button onclick="switchTab('voronoi')" id="tab-btn-voronoi"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow">
+          3.1 Células y Diagrama de Voronoi
+        </button>
+        <button onclick="switchTab('delaunay')" id="tab-btn-delaunay"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white">
+          3.2 Dualidad y Delaunay
+        </button>
+        <button onclick="switchTab('problems')" id="tab-btn-problems"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white">
+          Los 7 Problemas de Proximidad
+        </button>
+        <button onclick="switchTab('divide')" id="tab-btn-divide"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white">
+          3.3 Algoritmo Divide y Vencerás (σ)
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 space-y-5">
+
+    <!-- BANNER SÍNTESIS DE EXAMEN -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-4 shadow-sm border border-indigo-500/30 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider">
+          <span>★ Ideas Esenciales para el Examen (ResumenTeoria.pdf · Págs. 17–21)</span>
+        </div>
+        <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+          El diagrama $\operatorname{Vor}(S)$ concentra <strong>toda la información de proximidad</strong> de la nube $S$. Bajo la hipótesis de <strong>posición general</strong> (puntos no alineados y sin 4 puntos cocirculares), cada vértice de Voronoi tiene grado 3 (centro de una circunferencia vacía que pasa por 3 generadores) y su grafo dual es exactamente la <strong>Triangulación de Delaunay</strong>.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2 shrink-0 text-xs mono">
+        <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700">
+          <span class="text-slate-400">Célula:</span> <span class="text-amber-300 font-bold">Vor(pᵢ) = ⋂ h(pᵢ, pⱼ)</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700">
+          <span class="text-slate-400">No acotada:</span> <span class="text-emerald-300 font-bold">⇔ pᵢ ∈ CH(S)</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700">
+          <span class="text-slate-400">Divide y Vencerás:</span> <span class="text-sky-300 font-bold">O(n log n)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- MÓDULO 1: CONSTRUCCIÓN DE CÉLULAS Y DIAGRAMA DE VORONOI             -->
+    <!-- =================================================================== -->
+    <section id="sec-voronoi" class="space-y-5">
+      <!-- Barra superior de configuración de la nube -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Configuración de $S$:</span>
+          <button onclick="loadMainCloudPreset('general10')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition">
+            Nube en Posición General (10 puntos)
+          </button>
+          <button onclick="loadMainCloudPreset('cocircular')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-100 text-rose-900 border border-rose-300 hover:bg-rose-200 transition">
+            ⚠️ Caso 4 Puntos Cocirculares (No Posición General)
+          </button>
+          <button onclick="loadMainCloudPreset('wheel')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+            Hexágono con Centro (7 puntos)
+          </button>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 text-xs">
+          <label class="flex items-center gap-1.5 cursor-pointer font-medium text-slate-700">
+            <input type="checkbox" id="chk-vor-hull" onchange="renderVoronoiModule()" checked class="rounded text-indigo-600 focus:ring-indigo-500" />
+            Destacar $CH(S)$ y celdas no acotadas (Teor. 2.16)
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer font-medium text-slate-700">
+            <input type="checkbox" id="chk-vor-circles" onchange="renderVoronoiModule()" class="rounded text-indigo-600 focus:ring-indigo-500" />
+            Mostrar circunferencia vacía del vértice (Cor. 2.14)
+          </label>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Lienzo Interactivo Voronoi (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                Construcción por Intersección de Semiplanos: $\operatorname{Vor}(p_i) = \bigcap_{j \neq i} h(p_i, p_j)$
+              </h2>
+              <p class="text-xs text-slate-500">
+                <strong>Arrastra cualquier punto $p_i$</strong> o haz clic sobre él para seleccionarlo y ver cómo las mediatrices $m_{ij}$ recortan su polígono de Voronoi.
+              </p>
+            </div>
+            <div class="text-xs mono bg-indigo-50 text-indigo-800 px-3 py-1.5 rounded-xl border border-indigo-200 font-bold">
+              Generador activo: <span id="vor-selected-label">p₁</span>
+            </div>
+          </div>
+
+          <div class="relative bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+            <canvas id="canvas-voronoi" width="680" height="430" class="w-full h-[360px] sm:h-[410px] block cursor-grab active:cursor-grabbing"></canvas>
+          </div>
+
+          <!-- Control paso a paso de intersección de semiplanos h(pi, pj) -->
+          <div class="bg-slate-900 text-white rounded-xl p-4 space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-amber-500 text-slate-950">
+                  Lema 2.10 · Intersección de Semiplanos
+                </span>
+                <span id="vor-halfplane-counter" class="text-xs mono text-amber-300 font-semibold">
+                  Todos los semiplanos activos
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="stepHalfPlane(-1)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold border border-slate-700">
+                  ◀ Menos $m_{ij}$
+                </button>
+                <button onclick="stepHalfPlane(1)" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold">
+                  + Añadir mediatriz $m_{ij}$ ▶
+                </button>
+                <button onclick="resetHalfPlanesAll()" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold">
+                  Ver todos
+                </button>
+              </div>
+            </div>
+            <p id="vor-halfplane-desc" class="text-xs text-slate-300 leading-relaxed">
+              Mostrando la intersección completa de los $n-1$ semiplanos $h(p_i, p_j)$. Pulsa "◀ Menos $m_{ij}$" para reconstruir la célula $\operatorname{Vor}(p_i)$ mediatriz a mediatriz.
+            </p>
+          </div>
+        </div>
+
+        <!-- Panel Derecho: Teoremas y Propiedades en Vivo (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          <!-- Inspector de la célula seleccionada -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
+            <h3 class="text-sm font-bold text-slate-900">Inspector de la Célula $\operatorname{Vor}(p_i)$</h3>
+            <div id="vor-cell-inspector" class="space-y-2 text-xs">
+              <!-- Rellenado dinámicamente -->
+            </div>
+          </div>
+
+          <!-- Resumen Teórico de Propiedades (Lema 2.10 a Corolario 2.17) -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3 flex-1">
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-600">
+              ★ Propiedades Clave en ResumenTeoria (Pág. 18)
+            </div>
+            <div class="space-y-2 text-xs text-slate-700 leading-relaxed">
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <strong class="text-slate-900">Lema 2.10 y Prop. 2.11:</strong> Como cada semiplano $h(p_i, p_j) = \{q \in \mathbb{R}^2 \mid d(q,p_i) \le d(q,p_j)\}$ es convexo, $\operatorname{Vor}(p_i) = \bigcap_{j \neq i} h(p_i, p_j)$ es siempre un <strong>polígono convexo</strong> (acotado o no).
+              </div>
+              <div class="p-2.5 rounded-xl bg-indigo-50/70 border border-indigo-200">
+                <strong class="text-indigo-950">Posición General (Teor. 2.13 y Cor. 2.14):</strong> Si no hay 4 puntos cocirculares, cada vértice de $\operatorname{Vor}(S)$ es intersección de exactamente <strong>3 aristas</strong> y es el centro de una circunferencia definida por 3 puntos de $S$ cuyo interior <strong>no contiene a ningún otro punto de $S$</strong>.
+              </div>
+              <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200">
+                <strong class="text-amber-950">Celdas No Acotadas y $CH(S)$ (Teor. 2.16 y Cor. 2.17):</strong><br/>
+                • $\operatorname{Vor}(p_i)$ es <strong>no acotado</strong> $\iff p_i$ es un punto de la envolvente convexa $CH(S)$.<br/>
+                • Las <strong>semirrectas</strong> de $\operatorname{Vor}(S)$ corresponden biunívocamente a pares de puntos consecutivos de $CH(S)$.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MÓDULO 2: DUALIDAD VORONOI <-> TRIANGULACIÓN DE DELAUNAY            -->
+    <!-- =================================================================== -->
+    <section id="sec-delaunay" class="hidden space-y-5">
+      <!-- Controles de capas -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3 text-xs font-semibold">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Capas Visuales:</span>
+          <label class="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800">
+            <input type="checkbox" id="chk-del-voronoi" onchange="renderDelaunayModule()" checked />
+            Diagrama de Voronoi $\operatorname{Vor}(S)$
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-xl bg-rose-50 text-rose-900 border border-rose-200">
+            <input type="checkbox" id="chk-del-triangles" onchange="renderDelaunayModule()" checked />
+            Triangulación de Delaunay (Grafo Dual)
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-900 border border-indigo-200">
+            <input type="checkbox" id="chk-del-circumcircle" onchange="renderDelaunayModule()" checked />
+            Circunferencia Vacía del Triángulo Activo
+          </label>
+        </div>
+        <div class="text-xs text-slate-500">
+          💡 <strong>Haz clic dentro de cualquier triángulo de Delaunay</strong> para comprobar su dualidad con el vértice de Voronoi.
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Lienzo Dualidad (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                Grafo Dual de $\operatorname{Vor}(S)$: La Triangulación de Delaunay (Teorema 2.18)
+              </h2>
+              <p class="text-xs text-slate-500">
+                Dos generadores $p_i, p_j \in S$ se unen por una arista de Delaunay (en rojo) si y solo si sus células $\operatorname{Vor}(p_i)$ y $\operatorname{Vor}(p_j)$ comparten una arista común.
+              </p>
+            </div>
+            <div id="del-count-badge" class="text-xs mono bg-rose-50 text-rose-800 px-3 py-1.5 rounded-xl border border-rose-200 font-bold">
+              Triángulos: 0
+            </div>
+          </div>
+
+          <div class="relative bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+            <canvas id="canvas-delaunay" width="680" height="430" class="w-full h-[360px] sm:h-[410px] block cursor-pointer"></canvas>
+          </div>
+
+          <div id="del-selected-info" class="bg-indigo-50/80 border border-indigo-200 rounded-xl p-4 text-xs sm:text-sm text-slate-800">
+            <!-- Dinámico -->
+          </div>
+        </div>
+
+        <!-- Panel Derecho: Tabla de Correspondencia Dual Exacta (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
+            <h3 class="text-sm font-bold text-slate-900">Diccionario de Dualidad Geométrica</h3>
+            <div class="overflow-hidden rounded-xl border border-slate-200 text-xs">
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-900 text-white">
+                  <tr>
+                    <th class="py-2.5 px-3">Diagrama de Voronoi $\operatorname{Vor}(S)$</th>
+                    <th class="py-2.5 px-3">Triangulación de Delaunay $\operatorname{Del}(S)$</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
+                  <tr>
+                    <td class="py-2.5 px-3 font-semibold text-slate-800">Cara / Célula $\operatorname{Vor}(p_i)$</td>
+                    <td class="py-2.5 px-3 text-rose-700 font-semibold">Vértice generador $p_i \in S$</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-3 font-semibold text-slate-800">Arista de Voronoi (en $m_{ij}$)</td>
+                    <td class="py-2.5 px-3 text-rose-700 font-semibold">Arista de Delaunay $p_i p_j$ ($\perp m_{ij}$)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-3 font-semibold text-slate-800">Vértice de Voronoi $v$ (grado 3)</td>
+                    <td class="py-2.5 px-3 text-rose-700 font-semibold">Triángulo $\triangle p_i p_j p_k$ (circuncentro $v$)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-3 font-semibold text-slate-800">Células no acotadas (semirrectas)</td>
+                    <td class="py-2.5 px-3 text-rose-700 font-semibold">Frontera del cierre convexo $CH(S)$</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3 flex-1">
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-600">
+              ★ Definiciones 2.18, 2.19 y Teorema 2.18
+            </div>
+            <div class="text-xs text-slate-700 space-y-2.5 leading-relaxed">
+              <p>
+                <strong>Definición 2.18 (Grafo Dual):</strong> Dado un grafo plano $G$, su grafo dual $G'$ tiene tantos vértices como caras tiene $G$, y dos vértices de $G'$ son adyacentes si las caras de las que provienen en $G$ comparten una arista común.
+              </p>
+              <p>
+                <strong>Teorema 2.18:</strong> Si los puntos de $S$ están en <strong>posición general</strong> (no hay 4 cocirculares), el grafo dual de $\operatorname{Vor}(S)$ es una triangulación de $S$, denominada <strong>Triangulación de Delaunay</strong>.
+              </p>
+              <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-950">
+                <strong>¿Qué ocurre si hay 4 puntos cocirculares?</strong><br/>
+                Prueba el botón <em>"Caso 4 Puntos Cocirculares"</em> en la pestaña 3.1 y vuelve aquí: verás que 4 celdas concurren en el mismo circuncentro y la cara dual es un cuadrilátero que puede triangularse por cualquiera de sus dos diagonales.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MÓDULO 3: LOS 7 PROBLEMAS DE PROXIMIDAD (PROB. 1 A PROB. 7)         -->
+    <!-- =================================================================== -->
+    <section id="sec-problems" class="hidden space-y-5">
+      <!-- Selector de los 7 Problemas de Proximidad del ResumenTeoria -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Selecciona uno de los 7 Problemas de Proximidad (ResumenTeoria · Págs. 17–20):
+          </span>
+          <span class="text-xs text-slate-500">Todos se resuelven de manera directa a partir de $\operatorname{Vor}(S)$ y $\operatorname{Del}(S)$</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+          <button onclick="selectProximityProblem(1)" id="prob-btn-1"
+            class="p-2.5 rounded-xl text-left border transition-all bg-indigo-600 text-white border-indigo-600 shadow-sm">
+            <div class="text-[10px] uppercase font-bold opacity-80">Prob. 1</div>
+            <div class="text-xs font-bold leading-tight mt-0.5">Región de $p_i$</div>
+          </button>
+          <button onclick="selectProximityProblem(2)" id="prob-btn-2"
+            class="p-2.5 rounded-xl text-left border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+            <div class="text-[10px] uppercase font-bold text-slate-400">Prob. 2</div>
+            <div class="text-xs font-bold leading-tight mt-0.5">Todos Vecinos +Cercanos</div>
+          </button>
+          <button onclick="selectProximityProblem(3)" id="prob-btn-3"
+            class="p-2.5 rounded-xl text-left border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+            <div class="text-[10px] uppercase font-bold text-slate-400">Prob. 3</div>
+            <div class="text-xs font-bold leading-tight mt-0.5">El Par Más Cercano</div>
+          </button>
+          <button onclick="selectProximityProblem(4)" id="prob-btn-4"
+            class="p-2.5 rounded-xl text-left border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+            <div class="text-[10px] uppercase font-bold text-slate-400">Prob. 4</div>
+            <div class="text-xs font-bold leading-tight mt-0.5">Nuevo Punto $p$</div>
+          </button>
+          <button onclick="selectProximityProblem(5)" id="prob-btn-5"
+            class="p-2.5 rounded-xl text-left border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+            <div class="text-[10px] uppercase font-bold text-slate-400">Prob. 5</div>
+            <div class="text-xs font-bold leading-tight mt-0.5">Mayor Círculo Vacío</div>
+          </button>
+          <button onclick="selectProximityProblem(6)" id="prob-btn-6"
+            class="p-2.5 rounded-xl text-left border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+            <div class="text-[10px] uppercase font-bold text-slate-400">Prob. 6</div>
+            <div class="text-xs font-bold leading-tight mt-0.5">Triangulación</div>
+          </button>
+          <button onclick="selectProximityProblem(7)" id="prob-btn-7"
+            class="p-2.5 rounded-xl text-left border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+            <div class="text-[10px] uppercase font-bold text-slate-400">Prob. 7</div>
+            <div class="text-xs font-bold leading-tight mt-0.5">Árbol Spanning Min.</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Lienzo de Resolución del Problema (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 id="prob-title" class="text-base sm:text-lg font-bold text-slate-900">
+                Problema 1: Región de puntos más próximos a un generador $p_i$
+              </h2>
+              <p id="prob-subtitle" class="text-xs text-slate-500">
+                Fijado un punto $p_i \in S$, encontrar la región del plano formada por los puntos que están más próximos a él que a cualquier otro punto de $S$.
+              </p>
+            </div>
+            <!-- Controles específicos para Prob 7 (Prim paso a paso) -->
+            <div id="prob7-controls" class="hidden flex items-center gap-1.5">
+              <button onclick="stepProb7Mst(-1)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold">◀ Ant.</button>
+              <span id="prob7-step-label" class="mono text-xs font-bold text-indigo-700 px-2">Paso 0</span>
+              <button onclick="stepProb7Mst(1)" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-semibold">Sig. ▶</button>
+            </div>
+          </div>
+
+          <div class="relative bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+            <canvas id="canvas-problems" width="680" height="430" class="w-full h-[360px] sm:h-[410px] block cursor-pointer"></canvas>
+          </div>
+
+          <div id="prob-bottom-banner" class="bg-indigo-50/80 border border-indigo-200 rounded-xl p-4 text-xs sm:text-sm text-slate-800 font-medium">
+            <!-- Explicación interactiva -->
+          </div>
+        </div>
+
+        <!-- Panel Derecho: Solución Teórica Oficial y Datos Calculados (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-600">★ Solución en ResumenTeoria (Págs. 19–20)</span>
+            </div>
+            <div id="prob-theory-box" class="text-xs sm:text-sm text-slate-700 space-y-2.5 leading-relaxed">
+              <!-- Rellenado por JS -->
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3 flex-1 flex flex-col">
+            <h3 id="prob-table-title" class="text-sm font-bold text-slate-900">Datos Geométricos Calculados en Vivo</h3>
+            <div id="prob-data-container" class="flex-1 max-h-64 overflow-y-auto mono text-xs space-y-1.5 pr-1">
+              <!-- Tabla dinámica según el problema elegido -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MÓDULO 4: ALGORITMO DIVIDE Y VENCERÁS Y CADENA POLIGONAL σ          -->
+    <!-- =================================================================== -->
+    <section id="sec-divide" class="hidden space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Lienzo del Ejemplo de 16 puntos de las Diapositivas (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                Algoritmo <em>Divide y Vencerás</em> $O(n \log n)$ — Construcción de la Cadena $\sigma$
+              </h2>
+              <p class="text-xs text-slate-500">
+                Recreación interactiva paso a paso del ejemplo de 16 puntos de las diapositivas de clase ($S_1$ en azul a la izquierda, $S_2$ en rojo a la derecha).
+              </p>
+            </div>
+            <div class="text-xs mono bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 font-bold text-indigo-700">
+              Paso: <span id="div-step-counter">0/12</span>
+            </div>
+          </div>
+
+          <!-- Leyenda del Divide y Vencerás -->
+          <div class="flex flex-wrap items-center gap-4 text-xs text-slate-600">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span> $S_1$ y $\operatorname{Vor}(S_1)$ (Izquierda)</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-600 inline-block"></span> $S_2$ y $\operatorname{Vor}(S_2)$ (Derecha)</span>
+            <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-slate-950 inline-block"></span> Cadena Poligonal $\sigma$ (Frontera $\pi_L / \pi_R$)</span>
+          </div>
+
+          <div class="relative bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+            <canvas id="canvas-divide" width="680" height="430" class="w-full h-[360px] sm:h-[410px] block"></canvas>
+          </div>
+
+          <!-- Explicación del tramo actual de sigma -->
+          <div class="bg-indigo-50/80 border border-indigo-200 rounded-xl p-4 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span id="div-step-badge" class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-md">
+                Paso 1
+              </span>
+              <span id="div-active-bisector" class="text-xs mono font-bold text-slate-800"></span>
+            </div>
+            <p id="div-step-desc" class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed"></p>
+          </div>
+
+          <!-- Controles de reproducción -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-1.5">
+              <button onclick="divFirst()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">⏮ Inicio</button>
+              <button onclick="divPrev()" id="div-btn-prev" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40">◀ Ant.</button>
+              <button onclick="divNext()" id="div-btn-next" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm disabled:opacity-40">Sig. ▶</button>
+              <button onclick="divLast()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Fin ⏭</button>
+            </div>
+            <button onclick="divToggleAuto()" id="div-btn-auto" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm">
+              ▶ Reproducir fusión
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Derecho: Traza de la Cadena Poligonal σ y Esquema ResumenTeoria (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          <!-- Tabla de tramos de la cadena sigma -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col">
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Traza de la Cadena Separadora $\sigma$ (Paso 3)</h3>
+            <p class="text-xs text-slate-500 mb-3">
+              Cada tramo de $\sigma$ es parte de la mediatriz $m(p_L, p_R)$ con $p_L \in S_1$ y $p_R \in S_2$. Al chocar con una arista de $\operatorname{Vor}(S_1)$ o $\operatorname{Vor}(S_2)$, cambia el generador correspondiente:
+            </p>
+            <div class="max-h-56 overflow-y-auto border border-slate-200 rounded-xl">
+              <table class="w-full text-left border-collapse mono text-xs">
+                <thead class="bg-slate-100 text-slate-700 sticky top-0">
+                  <tr>
+                    <th class="py-2 px-2.5 border-b">Tramo</th>
+                    <th class="py-2 px-2.5 border-b">Mediatriz Activa</th>
+                    <th class="py-2 px-2.5 border-b">Evento de Corte</th>
+                  </tr>
+                </thead>
+                <tbody id="div-sigma-tbody" class="divide-y divide-slate-100">
+                  <!-- Rellenado por JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Descripción de los 4 Pasos en ResumenTeoria -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-2.5 flex-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-600">★ Esquema en ResumenTeoria (Pág. 20)</span>
+              <span class="text-xs mono font-bold bg-sky-100 text-sky-900 px-2 py-0.5 rounded">O(n log n)</span>
+            </div>
+            <div class="text-xs text-slate-700 space-y-2 leading-relaxed">
+              <p><strong>Paso 1:</strong> Dividir $S$ en dos subconjuntos $S_1$ y $S_2$ (con $\approx n/2$ puntos cada uno) separados por una recta vertical, quedando $S_1$ a la izquierda y $S_2$ a la derecha.</p>
+              <p><strong>Paso 2:</strong> Construir recursivamente $\operatorname{Vor}(S_1)$ y $\operatorname{Vor}(S_2)$.</p>
+              <p><strong>Paso 3:</strong> Construir la <strong>cadena poligonal monótona $\sigma$</strong> que separa $S_1$ y $S_2$ (recorriendo de arriba abajo las mediatrices entre puntos de $S_1$ y $S_2$).</p>
+              <p><strong>Paso 4:</strong> Obtener $\operatorname{Vor}(S)$ recortando cada diagrama con su lado de $\sigma$:</p>
+              <div class="p-2.5 rounded-xl bg-slate-900 text-amber-300 mono text-center font-bold">
+                Vor(S) = (Vor(S₁) ∩ π_L) ∪ (Vor(S₂) ∩ π_R)
+              </div>
+              <p class="text-[11px] text-slate-500">
+                donde $\pi_L$ (resp. $\pi_R$) es la región del plano que queda a la izquierda (resp. derecha) de la cadena $\sigma$.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // MOTOR GEOMÉTRICO 2D: VORONOI, DELAUNAY, ENVOLVENTE Y RECORTES EXACTOS
+    // =========================================================================
+    const WX_MIN = 0, WX_MAX = 20;
+    const WY_MIN = 0, WY_MAX = 12.8;
+
+    function worldToScreen(pt, canvas) {
+      const pad = 28;
+      const w = canvas.width - 2 * pad;
+      const h = canvas.height - 2 * pad;
+      return {
+        x: pad + ((pt.x - WX_MIN) / (WX_MAX - WX_MIN)) * w,
+        y: canvas.height - pad - ((pt.y - WY_MIN) / (WY_MAX - WY_MIN)) * h
+      };
+    }
+
+    function screenToWorld(sx, sy, canvas) {
+      const pad = 28;
+      const w = canvas.width - 2 * pad;
+      const h = canvas.height - 2 * pad;
+      const wx = WX_MIN + ((sx - pad) / w) * (WX_MAX - WX_MIN);
+      const wy = WY_MIN + ((canvas.height - pad - sy) / h) * (WY_MAX - WY_MIN);
+      return {
+        x: Math.round(Math.max(1.2, Math.min(18.8, wx)) * 10) / 10,
+        y: Math.round(Math.max(1.2, Math.min(11.6, wy)) * 10) / 10
+      };
+    }
+
+    function dist(a, b) {
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    function signedArea(p1, p2, p3) {
+      return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+    }
+
+    // Recorte de un polígono convexo respecto al semiplano h(pi, pj):
+    // h(pi, pj) = { q : (q - mid) · (pj - pi) <= 0 }
+    // Además guarda qué generador pj produjo cada arista del polígono recortado.
+    function clipPolygonByBisector(poly, pi, pj, tagJ) {
+      const mx = 0.5 * (pi.x + pj.x);
+      const my = 0.5 * (pi.y + pj.y);
+      const nx = pj.x - pi.x;
+      const ny = pj.y - pi.y;
+
+      const evalSide = pt => (pt.x - mx) * nx + (pt.y - my) * ny;
+      const out = [];
+      const n = poly.length;
+      if (n === 0) return out;
+
+      for (let i = 0; i < n; i++) {
+        const cur = poly[i];
+        const nxt = poly[(i + 1) % n];
+        const dCur = evalSide(cur);
+        const dNxt = evalSide(nxt);
+        const curIn = dCur <= 1e-7;
+        const nxtIn = dNxt <= 1e-7;
+
+        if (curIn && nxtIn) {
+          out.push({ ...nxt });
+        } else if (curIn && !nxtIn) {
+          const t = dCur / (dCur - dNxt);
+          out.push({
+            x: cur.x + t * (nxt.x - cur.x),
+            y: cur.y + t * (nxt.y - cur.y),
+            edgeTag: tagJ
+          });
+        } else if (!curIn && nxtIn) {
+          const t = dCur / (dCur - dNxt);
+          out.push({
+            x: cur.x + t * (nxt.x - cur.x),
+            y: cur.y + t * (nxt.y - cur.y),
+            edgeTag: cur.edgeTag
+          });
+          out.push({ ...nxt });
+        }
+      }
+      return out;
+    }
+
+    // Caja envolvente grande para representar el plano y detectar celdas no acotadas
+    const BOUND_MIN_X = -30, BOUND_MAX_X = 50;
+    const BOUND_MIN_Y = -30, BOUND_MAX_Y = 42;
+
+    function createInitialBoundingPolygon() {
+      return [
+        { x: BOUND_MIN_X, y: BOUND_MIN_Y, edgeTag: 'bound' },
+        { x: BOUND_MAX_X, y: BOUND_MIN_Y, edgeTag: 'bound' },
+        { x: BOUND_MAX_X, y: BOUND_MAX_Y, edgeTag: 'bound' },
+        { x: BOUND_MIN_X, y: BOUND_MAX_Y, edgeTag: 'bound' }
+      ];
+    }
+
+    // Calcula el cierre convexo CH(S) mediante Scan de Andrew en orientación positiva
+    function computeConvexHull(pts) {
+      if (pts.length <= 2) return [...pts];
+      const sorted = [...pts].sort((a, b) => a.x !== b.x ? a.x - b.x : a.y - b.y);
+      const lower = [];
+      for (const p of sorted) {
+        while (lower.length >= 2 && signedArea(lower[lower.length - 2], lower[lower.length - 1], p) <= 1e-7) {
+          lower.pop();
+        }
+        lower.push(p);
+      }
+      const upper = [];
+      for (let i = sorted.length - 1; i >= 0; i--) {
+        const p = sorted[i];
+        while (upper.length >= 2 && signedArea(upper[upper.length - 2], upper[upper.length - 1], p) <= 1e-7) {
+          upper.pop();
+        }
+        upper.push(p);
+      }
+      lower.pop();
+      upper.pop();
+      return lower.concat(upper);
+    }
+
+    // Circuncentro y radio de tres puntos A, B, C
+    function computeCircumcircle(A, B, C) {
+      const D = 2 * (A.x * (B.y - C.y) + B.x * (C.y - A.y) + C.x * (A.y - B.y));
+      if (Math.abs(D) < 1e-7) return null;
+      const aSq = A.x * A.x + A.y * A.y;
+      const bSq = B.x * B.x + B.y * B.y;
+      const cSq = C.x * C.x + C.y * C.y;
+      const ux = (aSq * (B.y - C.y) + bSq * (C.y - A.y) + cSq * (A.y - B.y)) / D;
+      const uy = (aSq * (C.x - B.x) + bSq * (A.x - C.x) + cSq * (B.x - A.x)) / D;
+      const r = Math.hypot(ux - A.x, uy - A.y);
+      return { x: ux, y: uy, r };
+    }
+
+    // Calcula toda la estructura de Voronoi y Delaunay para un conjunto de puntos S
+    function computeVoronoiAndDelaunay(pts, customClipBox = null) {
+      const hull = computeConvexHull(pts);
+      const hullIds = new Set(hull.map(p => p.id));
+
+      // 1. Células de Voronoi exactas por intersección de semiplanos
+      const cells = pts.map(pi => {
+        let poly = customClipBox ? customClipBox.map(v => ({ ...v })) : createInitialBoundingPolygon();
+        pts.forEach(pj => {
+          if (pj.id !== pi.id) {
+            poly = clipPolygonByBisector(poly, pi, pj, pj.id);
+          }
+        });
+        return {
+          site: pi,
+          poly,
+          isUnbounded: hullIds.has(pi.id)
+        };
+      });
+
+      // 2. Vértices de Voronoi y Triángulos de Delaunay (criterio de circunferencia vacía)
+      const triangles = [];
+      const vorVertices = [];
+      const delaunayEdgesMap = new Map();
+
+      const n = pts.length;
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          for (let k = j + 1; k < n; k++) {
+            const A = pts[i], B = pts[j], C = pts[k];
+            const cc = computeCircumcircle(A, B, C);
+            if (!cc) continue;
+
+            // Verificar si la circunferencia está vacía (ningún otro punto estrictamente dentro)
+            let isEmpty = true;
+            const cocircularIds = [A.id, B.id, C.id];
+            for (let m = 0; m < n; m++) {
+              if (m === i || m === j || m === k) continue;
+              const d = Math.hypot(pts[m].x - cc.x, pts[m].y - cc.y);
+              if (d < cc.r - 1e-4) {
+                isEmpty = false;
+                break;
+              } else if (Math.abs(d - cc.r) <= 1e-4) {
+                cocircularIds.push(pts[m].id);
+              }
+            }
+
+            if (isEmpty) {
+              // Evitar duplicar el mismo triángulo si hay 4 cocirculares pero registrarlo
+              const triVertices = signedArea(A, B, C) > 0 ? [A, B, C] : [A, C, B];
+              triangles.push({
+                verts: triVertices,
+                cc,
+                isDegenerate: cocircularIds.length > 3
+              });
+
+              // Fusionar vértices de Voronoi muy próximos (cocirculares)
+              let existingV = vorVertices.find(v => Math.hypot(v.x - cc.x, v.y - cc.y) < 1e-3);
+              if (!existingV) {
+                vorVertices.push({
+                  x: cc.x,
+                  y: cc.y,
+                  r: cc.r,
+                  sites: [...new Set(cocircularIds)]
+                });
+              } else {
+                cocircularIds.forEach(id => {
+                  if (!existingV.sites.includes(id)) existingV.sites.push(id);
+                });
+              }
+
+              // Registrar aristas de Delaunay (excepto la diagonal interior duplicada si queremos, o todas)
+              const pairs = [[A, B], [B, C], [C, A]];
+              pairs.forEach(([u, v]) => {
+                const key = [u.id, v.id].sort().join('-');
+                if (!delaunayEdgesMap.has(key)) {
+                  delaunayEdgesMap.set(key, { u, v, length: dist(u, v) });
+                }
+              });
+            }
+          }
+        }
+      }
+
+      return {
+        cells,
+        hull,
+        triangles,
+        vorVertices,
+        delaunayEdges: Array.from(delaunayEdgesMap.values())
+      };
+    }
+
+    // Dibujo de rejilla cartesiana limpia
+    function drawBaseGrid(ctx, canvas) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px JetBrains Mono, monospace';
+
+      for (let x = 0; x <= 20; x += 2) {
+        const s0 = worldToScreen({ x, y: WY_MIN }, canvas);
+        const s1 = worldToScreen({ x, y: WY_MAX }, canvas);
+        ctx.beginPath();
+        ctx.moveTo(s0.x, s0.y);
+        ctx.lineTo(s1.x, s1.y);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= 12; y += 2) {
+        const s0 = worldToScreen({ x: WX_MIN, y }, canvas);
+        const s1 = worldToScreen({ x: WX_MAX, y }, canvas);
+        ctx.beginPath();
+        ctx.moveTo(s0.x, s0.y);
+        ctx.lineTo(s1.x, s1.y);
+        ctx.stroke();
+      }
+    }
+
+    function drawGeneratorNode(ctx, canvas, pt, bg = '#0f172a', fg = '#ffffff', r = 11, ringColor = null) {
+      const s = worldToScreen(pt, canvas);
+      ctx.save();
+      if (ringColor) {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, r + 5, 0, Math.PI * 2);
+        ctx.strokeStyle = ringColor;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = bg;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      ctx.fillStyle = fg;
+      ctx.font = 'bold 10px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(pt.id, s.x, s.y);
+      ctx.restore();
+    }
+
+    // =========================================================================
+    // ESTADO GLOBAL COMPARTIDO PARA MÓDULOS 1, 2 Y 3
+    // =========================================================================
+    let activeTab = 'voronoi';
+    let mainCloud = [];
+    let selectedSiteIdx = 0;
+    let activeHalfPlaneCount = 999; // Cuántas mediatrices mij mostramos para Vor(pi)
+    let activeVorVertexIdx = 0;
+    let activeDelaunayTriIdx = 0;
+    let currentProblem = 1;
+    let queryPointP = { id: 'p', x: 11.2, y: 7.4 }; // Para el Problema 4
+    let prob7StepIdx = 99; // Paso del MST de Prim en el Problema 7
+
+    function loadMainCloudPreset(preset) {
+      if (preset === 'general10') {
+        // Nube inspirada en la presentación de clase en posición general
+        mainCloud = [
+          { id: 'p₁', x: 9.8,  y: 6.2 },
+          { id: 'p₂', x: 7.2,  y: 8.6 },
+          { id: 'p₃', x: 11.6, y: 9.0 },
+          { id: 'p₄', x: 13.4, y: 6.4 },
+          { id: 'p₅', x: 11.4, y: 3.8 },
+          { id: 'p₆', x: 7.8,  y: 4.2 },
+          { id: 'p₇', x: 4.6,  y: 6.8 },
+          { id: 'p₈', x: 4.8,  y: 10.2 },
+          { id: 'p₉', x: 15.2, y: 9.6 },
+          { id: 'p₁₀', x: 15.4, y: 3.6 }
+        ];
+        selectedSiteIdx = 0;
+      } else if (preset === 'cocircular') {
+        // 4 puntos exactamente cocirculares en torno a (10, 6.4) con radio 3.5 + 3 puntos exteriores
+        mainCloud = [
+          { id: 'p₁', x: 6.5,  y: 6.4 },
+          { id: 'p₂', x: 10.0, y: 9.9 },
+          { id: 'p₃', x: 13.5, y: 6.4 },
+          { id: 'p₄', x: 10.0, y: 2.9 },
+          { id: 'p₅', x: 3.5,  y: 9.8 },
+          { id: 'p₆', x: 16.5, y: 9.8 },
+          { id: 'p₇', x: 16.2, y: 2.8 }
+        ];
+        selectedSiteIdx = 0;
+      } else if (preset === 'wheel') {
+        mainCloud = [
+          { id: 'p₁', x: 10.0, y: 6.4 },
+          { id: 'p₂', x: 10.0, y: 10.6 },
+          { id: 'p₃', x: 13.8, y: 8.5 },
+          { id: 'p₄', x: 13.8, y: 4.3 },
+          { id: 'p₅', x: 10.0, y: 2.2 },
+          { id: 'p₆', x: 6.2,  y: 4.3 },
+          { id: 'p₇', x: 6.2,  y: 8.5 }
+        ];
+        selectedSiteIdx = 0;
+      }
+      activeHalfPlaneCount = mainCloud.length - 1;
+      activeVorVertexIdx = 0;
+      activeDelaunayTriIdx = 0;
+      refreshActiveModule();
+    }
+
+    function switchTab(tab) {
+      if (divTimer) { clearInterval(divTimer); divTimer = null; updateDivAutoBtn(); }
+      activeTab = tab;
+      ['voronoi', 'delaunay', 'problems', 'divide'].forEach(t => {
+        const sec = document.getElementById(`sec-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tab) {
+          sec.classList.remove('hidden');
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 shadow';
+        } else {
+          sec.classList.add('hidden');
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-300 hover:text-white';
+        }
+      });
+      refreshActiveModule();
+    }
+
+    function refreshActiveModule() {
+      if (activeTab === 'voronoi') renderVoronoiModule();
+      if (activeTab === 'delaunay') renderDelaunayModule();
+      if (activeTab === 'problems') renderProblemsModule();
+      if (activeTab === 'divide') renderDivideModule();
+    }
+
+    // =========================================================================
+    // MÓDULO 1: CONSTRUCCIÓN DE CÉLULAS Y DIAGRAMA DE VORONOI
+    // =========================================================================
+    function stepHalfPlane(delta) {
+      const maxH = mainCloud.length - 1;
+      activeHalfPlaneCount = Math.max(1, Math.min(maxH, activeHalfPlaneCount + delta));
+      renderVoronoiModule();
+    }
+
+    function resetHalfPlanesAll() {
+      activeHalfPlaneCount = mainCloud.length - 1;
+      renderVoronoiModule();
+    }
+
+    function renderVoronoiModule() {
+      const canvas = document.getElementById('canvas-voronoi');
+      const ctx = canvas.getContext('2d');
+      drawBaseGrid(ctx, canvas);
+
+      const geom = computeVoronoiAndDelaunay(mainCloud);
+      const showHull = document.getElementById('chk-vor-hull').checked;
+      const showCircles = document.getElementById('chk-vor-circles').checked;
+
+      const selSite = mainCloud[selectedSiteIdx] || mainCloud[0];
+      document.getElementById('vor-selected-label').textContent = `${selSite.id} (${selSite.x}, ${selSite.y})`;
+
+      // Ordenar los demás puntos por distancia a selSite para ir añadiendo mediatrices de más cercanas a más lejanas
+      const others = mainCloud
+        .filter(p => p.id !== selSite.id)
+        .sort((a, b) => dist(selSite, a) - dist(selSite, b));
+
+      const countH = Math.min(activeHalfPlaneCount, others.length);
+      const activeOthers = others.slice(0, countH);
+
+      // Polígono parcial de Vor(selSite) con las primeras countH mediatrices
+      let partialPoly = createInitialBoundingPolygon();
+      activeOthers.forEach(pj => {
+        partialPoly = clipPolygonByBisector(partialPoly, selSite, pj, pj.id);
+      });
+
+      // 1. Si estamos viendo todas las mediatrices, colorear suavemente las celdas no acotadas vs acotadas
+      geom.cells.forEach(cell => {
+        ctx.save();
+        ctx.beginPath();
+        cell.poly.forEach((v, idx) => {
+          const s = worldToScreen(v, canvas);
+          if (idx === 0) ctx.moveTo(s.x, s.y);
+          else ctx.lineTo(s.x, s.y);
+        });
+        ctx.closePath();
+        if (showHull && cell.isUnbounded) {
+          ctx.fillStyle = 'rgba(245, 158, 11, 0.08)';
+          ctx.fill();
+        }
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // 2. Resaltar el polígono parcial/completo de la célula seleccionada Vor(selSite)
+      if (partialPoly.length >= 3) {
+        ctx.save();
+        ctx.beginPath();
+        partialPoly.forEach((v, idx) => {
+          const s = worldToScreen(v, canvas);
+          if (idx === 0) ctx.moveTo(s.x, s.y);
+          else ctx.lineTo(s.x, s.y);
+        });
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(79, 70, 229, 0.20)';
+        ctx.fill();
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 3.2;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 3. Si estamos en modo paso a paso (< others.length), dibujar la última mediatriz añadida m_{ij}
+      if (countH < others.length || countH >= 1) {
+        const lastPj = activeOthers[activeOthers.length - 1];
+        if (lastPj && countH < others.length) {
+          const mx = 0.5 * (selSite.x + lastPj.x);
+          const my = 0.5 * (selSite.y + lastPj.y);
+          const dx = -(lastPj.y - selSite.y);
+          const dy = lastPj.x - selSite.x;
+          const pA = worldToScreen({ x: mx - dx * 10, y: my - dy * 10 }, canvas);
+          const pB = worldToScreen({ x: mx + dx * 10, y: my + dy * 10 }, canvas);
+
+          ctx.save();
+          ctx.strokeStyle = '#e11d48';
+          ctx.lineWidth = 2.2;
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath();
+          ctx.moveTo(pA.x, pA.y);
+          ctx.lineTo(pB.x, pB.y);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // 4. Dibujar la Envolvente Convexa CH(S) si está activada
+      if (showHull && geom.hull.length >= 3) {
+        ctx.save();
+        ctx.beginPath();
+        geom.hull.forEach((p, idx) => {
+          const s = worldToScreen(p, canvas);
+          if (idx === 0) ctx.moveTo(s.x, s.y);
+          else ctx.lineTo(s.x, s.y);
+        });
+        ctx.closePath();
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2.2;
+        ctx.setLineDash([5, 4]);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 5. Dibujar vértices de Voronoi y circunferencia vacía (Corolario 2.14)
+      geom.vorVertices.forEach((vv, idx) => {
+        if (vv.x < WX_MIN || vv.x > WX_MAX || vv.y < WY_MIN || vv.y > WY_MAX) return;
+        const sv = worldToScreen(vv, canvas);
+        const isDegenerate = vv.sites.length >= 4;
+        const isSelectedV = idx === (activeVorVertexIdx % Math.max(1, geom.vorVertices.length));
+
+        if (showCircles && isSelectedV) {
+          const edgePt = worldToScreen({ x: vv.x + vv.r, y: vv.y }, canvas);
+          const rPx = Math.abs(edgePt.x - sv.x);
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(sv.x, sv.y, rPx, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+          ctx.fill();
+          ctx.strokeStyle = '#059669';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(sv.x, sv.y, isDegenerate ? 6.5 : 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = isDegenerate ? '#e11d48' : '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = isDegenerate ? '#881337' : '#334155';
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // 6. Dibujar generadores p_i
+      mainCloud.forEach((pt, idx) => {
+        const isSel = idx === selectedSiteIdx;
+        const inHull = geom.hull.some(h => h.id === pt.id);
+        const bg = isSel ? '#4f46e5' : (showHull && inHull ? '#d97706' : '#0f172a');
+        drawGeneratorNode(ctx, canvas, pt, bg, '#ffffff', isSel ? 13 : 11, isSel ? '#818cf8' : null);
+      });
+
+      // 7. Actualizar textos y panel inspector
+      document.getElementById('vor-halfplane-counter').textContent =
+        `${countH} / ${others.length} semiplanos h(${selSite.id}, p_j) intersectados`;
+
+      if (countH < others.length) {
+        const lastPj = activeOthers[activeOthers.length - 1];
+        document.getElementById('vor-halfplane-desc').innerHTML =
+          `Añadido el semiplano <strong class="text-white">h(${selSite.id}, ${lastPj.id})</strong> limitado por la mediatriz <strong class="text-rose-400">m(${selSite.id}, ${lastPj.id})</strong> (en línea discontinua roja).`;
+      } else {
+        document.getElementById('vor-halfplane-desc').innerHTML =
+          `Intersección completa de los ${others.length} semiplanos. El resultado es la célula convexa <strong class="text-amber-300">Vor(${selSite.id})</strong>.`;
+      }
+
+      const selCell = geom.cells.find(c => c.site.id === selSite.id);
+      const neighborTags = [...new Set(selCell.poly.map(v => v.edgeTag).filter(t => t && t !== 'bound'))];
+      const degVertices = geom.vorVertices.filter(v => v.sites.length >= 4);
+
+      document.getElementById('vor-cell-inspector').innerHTML = `
+        <div class="p-3 rounded-xl ${selCell.isUnbounded ? 'bg-amber-50 border border-amber-200' : 'bg-indigo-50 border border-indigo-200'}">
+          <div class="font-bold text-slate-900 flex justify-between">
+            <span>Célula $\\operatorname{Vor}(${selSite.id})$:</span>
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${selCell.isUnbounded ? 'bg-amber-500 text-slate-950' : 'bg-indigo-600 text-white'}">
+              ${selCell.isUnbounded ? 'NO ACOTADA (En CH(S))' : 'ACOTADA (Interior a CH(S))'}
+            </span>
+          </div>
+          <p class="mt-1 text-slate-700">
+            ${selCell.isUnbounded
+              ? `Por el <strong>Teorema 2.16</strong>, $\\operatorname{Vor}(${selSite.id})$ es no acotada porque ${selSite.id} es un vértice del cierre convexo $CH(S)$.`
+              : `Por el <strong>Teorema 2.16</strong>, $\\operatorname{Vor}(${selSite.id})$ es un polígono convexo acotado porque ${selSite.id} es estrictamente interior a $CH(S)$.`}
+          </p>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <div class="font-bold text-slate-800">Generadores que comparten arista con $\\operatorname{Vor}(${selSite.id})$:</div>
+          <div class="mono text-indigo-700 font-bold">${neighborTags.join(', ')} (${neighborTags.length} aristas)</div>
+        </div>
+        ${degVertices.length > 0 ? `
+          <div class="p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-900">
+            <strong>⚠️ Detectado vértice degenerado (Grado ${degVertices[0].sites.length}):</strong><br/>
+            Los puntos <strong>${degVertices[0].sites.join(', ')}</strong> son cocirculares (centro en (${degVertices[0].x.toFixed(1)}, ${degVertices[0].y.toFixed(1)})). Se viola la hipótesis de posición general.
+          </div>
+        ` : `
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+            <strong>✓ Posición General Verificada:</strong> Todos los vértices de $\\operatorname{Vor}(S)$ tienen exactamente grado 3 (Teorema 2.13).
+          </div>
+        `}
+      `;
+    }
+
+    // =========================================================================
+    // MÓDULO 2: DUALIDAD VORONOI <-> TRIANGULACIÓN DE DELAUNAY
+    // =========================================================================
+    function renderDelaunayModule() {
+      const canvas = document.getElementById('canvas-delaunay');
+      const ctx = canvas.getContext('2d');
+      drawBaseGrid(ctx, canvas);
+
+      const geom = computeVoronoiAndDelaunay(mainCloud);
+      const showVor = document.getElementById('chk-del-voronoi').checked;
+      const showDel = document.getElementById('chk-del-triangles').checked;
+      const showCC = document.getElementById('chk-del-circumcircle').checked;
+
+      document.getElementById('del-count-badge').textContent =
+        `Triángulos Delaunay: ${geom.triangles.length} | Aristas: ${geom.delaunayEdges.length}`;
+
+      const activeTri = geom.triangles[activeDelaunayTriIdx % Math.max(1, geom.triangles.length)];
+
+      // 1. Dibujar Diagrama de Voronoi en gris oscuro
+      if (showVor) {
+        geom.cells.forEach(cell => {
+          ctx.save();
+          ctx.beginPath();
+          cell.poly.forEach((v, idx) => {
+            const s = worldToScreen(v, canvas);
+            if (idx === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          });
+          ctx.closePath();
+          ctx.strokeStyle = '#64748b';
+          ctx.lineWidth = 1.6;
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+
+      // 2. Resaltar el triángulo de Delaunay activo y su circunferencia circunscrita vacía
+      if (activeTri) {
+        const [A, B, C] = activeTri.verts;
+        const sA = worldToScreen(A, canvas);
+        const sB = worldToScreen(B, canvas);
+        const sC = worldToScreen(C, canvas);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(sA.x, sA.y);
+        ctx.lineTo(sB.x, sB.y);
+        ctx.lineTo(sC.x, sC.y);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.16)';
+        ctx.fill();
+        ctx.restore();
+
+        if (showCC) {
+          const sc = worldToScreen(activeTri.cc, canvas);
+          const sEdge = worldToScreen({ x: activeTri.cc.x + activeTri.cc.r, y: activeTri.cc.y }, canvas);
+          const rPx = Math.abs(sEdge.x - sc.x);
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(sc.x, sc.y, rPx, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(79, 70, 229, 0.08)';
+          ctx.fill();
+          ctx.strokeStyle = '#4f46e5';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.stroke();
+          ctx.restore();
+
+          // Dibujar el circuncentro (vértice de Voronoi dual)
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(sc.x, sc.y, 7, 0, Math.PI * 2);
+          ctx.fillStyle = '#4f46e5';
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // 3. Dibujar todas las aristas de la Triangulación de Delaunay en rojo (como en las diapositivas)
+      if (showDel) {
+        ctx.save();
+        ctx.strokeStyle = '#e11d48';
+        ctx.lineWidth = 2.6;
+        geom.delaunayEdges.forEach(edge => {
+          const su = worldToScreen(edge.u, canvas);
+          const sv = worldToScreen(edge.v, canvas);
+          ctx.beginPath();
+          ctx.moveTo(su.x, su.y);
+          ctx.lineTo(sv.x, sv.y);
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+
+      // 4. Dibujar generadores
+      mainCloud.forEach(pt => {
+        const inActiveTri = activeTri && activeTri.verts.some(v => v.id === pt.id);
+        drawGeneratorNode(ctx, canvas, pt, inActiveTri ? '#e11d48' : '#0f172a', '#ffffff', inActiveTri ? 13 : 11);
+      });
+
+      // 5. Actualizar banner de dualidad del triángulo seleccionado
+      if (activeTri) {
+        const [A, B, C] = activeTri.verts;
+        document.getElementById('del-selected-info').innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="font-bold text-rose-700">Triángulo de Delaunay activo: $\\triangle(${A.id}, ${B.id}, ${C.id})$</span>
+              <span class="mx-2 text-slate-400">⟷</span>
+              <span class="font-bold text-indigo-700">Vértice de Voronoi dual (Circuncentro): $v = (${activeTri.cc.x.toFixed(2)}, ${activeTri.cc.y.toFixed(2)})$</span>
+            </div>
+            <span class="mono text-xs bg-white px-2.5 py-1 rounded-lg border border-indigo-200 font-bold text-indigo-900 shrink-0">
+              Radio vacío R = ${activeTri.cc.r.toFixed(2)}
+            </span>
+          </div>
+          <p class="text-xs text-slate-600 mt-1">
+            Por el <strong>Corolario 2.14</strong>, la circunferencia circunscrita a $\\triangle(${A.id}, ${B.id}, ${C.id})$ con centro en el vértice de Voronoi $v$ <strong>no contiene a ningún otro punto de $S$ en su interior</strong>.
+          </p>
+        `;
+      }
+    }
+
+    // =========================================================================
+    // MÓDULO 3: LABORATORIO DE LOS 7 PROBLEMAS DE PROXIMIDAD
+    // =========================================================================
+    function selectProximityProblem(num) {
+      currentProblem = num;
+      for (let i = 1; i <= 7; i++) {
+        const btn = document.getElementById(`prob-btn-${i}`);
+        if (i === num) {
+          btn.className = 'p-2.5 rounded-xl text-left border transition-all bg-indigo-600 text-white border-indigo-600 shadow-sm';
+        } else {
+          btn.className = 'p-2.5 rounded-xl text-left border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100';
+        }
+      }
+      const p7Ctrl = document.getElementById('prob7-controls');
+      if (num === 7) {
+        p7Ctrl.classList.remove('hidden');
+        prob7StepIdx = mainCloud.length - 1;
+      } else {
+        p7Ctrl.classList.add('hidden');
+      }
+      renderProblemsModule();
+    }
+
+    function stepProb7Mst(delta) {
+      prob7StepIdx = Math.max(0, Math.min(mainCloud.length - 1, prob7StepIdx + delta));
+      renderProblemsModule();
+    }
+
+    // Resuelve el Problema 5 (Mayor Círculo Vacío con centro en CH(S)):
+    // Candidatos:
+    // 1) Vértices de Vor(S) que están dentro de CH(S)
+    // 2) Intersecciones de aristas de Vor(S) con las aristas del borde de CH(S)
+    function computeLargestEmptyCircle(pts, geom) {
+      const hull = geom.hull;
+      const isInsideHull = pt => {
+        for (let i = 0; i < hull.length; i++) {
+          const a = hull[i];
+          const b = hull[(i + 1) % hull.length];
+          if (signedArea(a, b, pt) < -1e-6) return false;
+        }
+        return true;
+      };
+
+      const candidates = [];
+
+      // Tipo 1: Vértices de Voronoi interiores a CH(S)
+      geom.vorVertices.forEach(vv => {
+        if (isInsideHull(vv)) {
+          candidates.push({
+            x: vv.x,
+            y: vv.y,
+            r: vv.r,
+            type: 'Vértice de Vor(S) interior a CH(S)',
+            ref: `Equidistante a ${vv.sites.join(', ')}`
+          });
+        }
+      });
+
+      // Tipo 2: Vértices de los polígonos Vor(pi) ∩ CH(S) sobre la frontera de CH(S)
+      pts.forEach(pi => {
+        let clippedCell = hull.map(h => ({ x: h.x, y: h.y, edgeTag: 'hull' }));
+        pts.forEach(pj => {
+          if (pj.id !== pi.id) {
+            clippedCell = clipPolygonByBisector(clippedCell, pi, pj, pj.id);
+          }
+        });
+        clippedCell.forEach(v => {
+          // Comprobar si no está ya añadido
+          if (!candidates.some(c => Math.hypot(c.x - v.x, c.y - v.y) < 1e-2)) {
+            const minDist = Math.min(...pts.map(p => dist(v, p)));
+            if (minDist > 1e-2) {
+              candidates.push({
+                x: v.x,
+                y: v.y,
+                r: minDist,
+                type: 'Vértice en Vor(S) ∩ ∂CH(S)',
+                ref: `En frontera de CH(S)`
+              });
+            }
+          }
+        });
+      });
+
+      candidates.sort((a, b) => b.r - a.r);
+      return candidates;
+    }
+
+    // Resuelve el Problema 7 (Árbol Spanning Minimal sobre las aristas de Delaunay usando Prim)
+    function computeDelaunayPrimSteps(pts, delaunayEdges) {
+      const visited = new Set([pts[0].id]);
+      const mstEdges = [];
+
+      while (visited.size < pts.length) {
+        let bestEdge = null;
+        delaunayEdges.forEach(e => {
+          const uIn = visited.has(e.u.id);
+          const vIn = visited.has(e.v.id);
+          if ((uIn && !vIn) || (!uIn && vIn)) {
+            if (!bestEdge || e.length < bestEdge.length) {
+              bestEdge = e;
+            }
+          }
+        });
+        if (!bestEdge) break;
+        const newSite = visited.has(bestEdge.u.id) ? bestEdge.v : bestEdge.u;
+        visited.add(newSite.id);
+        mstEdges.push(bestEdge);
+      }
+      return mstEdges;
+    }
+
+    function renderProblemsModule() {
+      const canvas = document.getElementById('canvas-problems');
+      const ctx = canvas.getContext('2d');
+      drawBaseGrid(ctx, canvas);
+
+      const geom = computeVoronoiAndDelaunay(mainCloud);
+      const selSite = mainCloud[selectedSiteIdx] || mainCloud[0];
+
+      // Dibujar siempre de base las celdas de Voronoi
+      geom.cells.forEach(cell => {
+        ctx.save();
+        ctx.beginPath();
+        cell.poly.forEach((v, idx) => {
+          const s = worldToScreen(v, canvas);
+          if (idx === 0) ctx.moveTo(s.x, s.y);
+          else ctx.lineTo(s.x, s.y);
+        });
+        ctx.closePath();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      const titleEl = document.getElementById('prob-title');
+      const subEl = document.getElementById('prob-subtitle');
+      const bannerEl = document.getElementById('prob-bottom-banner');
+      const theoryEl = document.getElementById('prob-theory-box');
+      const dataEl = document.getElementById('prob-data-container');
+
+      if (currentProblem === 1) {
+        titleEl.textContent = `Problema 1: Región de puntos más próximos a ${selSite.id}`;
+        subEl.textContent = 'Haz clic sobre cualquier generador p_i del lienzo para resaltar su célula Vor(p_i).';
+        const cell = geom.cells.find(c => c.site.id === selSite.id);
+
+        ctx.save();
+        ctx.beginPath();
+        cell.poly.forEach((v, idx) => {
+          const s = worldToScreen(v, canvas);
+          if (idx === 0) ctx.moveTo(s.x, s.y);
+          else ctx.lineTo(s.x, s.y);
+        });
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(79, 70, 229, 0.22)';
+        ctx.fill();
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.restore();
+
+        bannerEl.innerHTML = `Sol.: Dado $p_i = ${selSite.id} \\in S$, la región buscada es exactamente su polígono de Voronoi $\\operatorname{Vor}(${selSite.id})$ coloreado en azul.`;
+        theoryEl.innerHTML = `
+          <p><strong>Enunciado (Prob. 1):</strong> Fijado un punto de $S$, encontrar la región del plano formada por los puntos que están más próximos a él que a cualquier otro punto de $S$.</p>
+          <p class="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-950 font-semibold">
+            Solución: Por la Definición 2.16, dicha región es directamente el polígono de Voronoi $\\operatorname{Vor}(p_i) = \\{q \\in \\mathbb{R}^2 \\mid d(q, p_i) \\le d(q, p_j), \\forall j \\neq i\\}$.
+          </p>
+        `;
+        dataEl.innerHTML = mainCloud.map((p, idx) => `
+          <div onclick="selectedSiteIdx=${idx};renderProblemsModule()" class="p-2 rounded-lg cursor-pointer flex justify-between items-center ${idx === selectedSiteIdx ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-50 hover:bg-slate-100 text-slate-700'}">
+            <span>Generador ${p.id} (${p.x}, ${p.y})</span>
+            <span>${geom.cells[idx].isUnbounded ? 'No acotada' : 'Acotada'}</span>
+          </div>
+        `).join('');
+
+      } else if (currentProblem === 2) {
+        titleEl.textContent = 'Problema 2: Todos los vecinos más cercanos (Teorema 2.15)';
+        subEl.textContent = 'Para cada punto p_i ∈ S, su vecino más cercano comparte siempre una arista de Vor(p_i) (y una arista de Delaunay).';
+
+        const nearestList = mainCloud.map(pi => {
+          let best = null;
+          let minD = Infinity;
+          mainCloud.forEach(pj => {
+            if (pi.id !== pj.id) {
+              const d = dist(pi, pj);
+              if (d < minD) { minD = d; best = pj; }
+            }
+          });
+          return { from: pi, to: best, d: minD };
+        });
+
+        nearestList.forEach(item => {
+          const s1 = worldToScreen(item.from, canvas);
+          const s2 = worldToScreen(item.to, canvas);
+          const angle = Math.atan2(s2.y - s1.y, s2.x - s1.x);
+          const endX = s2.x - 13 * Math.cos(angle);
+          const endY = s2.y - 13 * Math.sin(angle);
+
+          ctx.save();
+          ctx.strokeStyle = '#0284c7';
+          ctx.fillStyle = '#0284c7';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(s1.x, s1.y);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(endX, endY);
+          ctx.lineTo(endX - 9 * Math.cos(angle - Math.PI / 6), endY - 9 * Math.sin(angle - Math.PI / 6));
+          ctx.lineTo(endX - 9 * Math.cos(angle + Math.PI / 6), endY - 9 * Math.sin(angle + Math.PI / 6));
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        });
+
+        bannerEl.innerHTML = `Las flechas azules indican para cada $p_i \\in S$ cuál es su vecino más próximo. Por el <strong>Teorema 2.15</strong>, basta examinar los generadores que comparten arista con $\\operatorname{Vor}(p_i)$.`;
+        theoryEl.innerHTML = `
+          <p><strong>Teorema 2.15:</strong> Para cada $p_i \\in S$, cada vecino más próximo a $p_i$ define una arista en el polígono $\\operatorname{Vor}(p_i)$.</p>
+          <p class="p-3 rounded-xl bg-sky-50 border border-sky-200 text-sky-950">
+            <strong>Solución (Prob. 2):</strong> Como el número total de aristas de $\\operatorname{Vor}(S)$ es $O(n)$, basta recorrer las aristas incidentes a cada $\\operatorname{Vor}(p_i)$ (o las aristas de Delaunay incidentes a $p_i$) para hallar todos los vecinos más cercanos en tiempo lineal $O(n)$ una vez construido $\\operatorname{Vor}(S)$.
+          </p>
+        `;
+        dataEl.innerHTML = nearestList.map(item => `
+          <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex justify-between">
+            <span>Vecino más cercano de <strong>${item.from.id}</strong>: <strong class="text-sky-700">${item.to.id}</strong></span>
+            <span class="font-bold">d = ${item.d.toFixed(2)}</span>
+          </div>
+        `).join('');
+
+      } else if (currentProblem === 3) {
+        titleEl.textContent = 'Problema 3: El par más cercano de la nube S';
+        subEl.textContent = 'Encontrar el par de puntos de S cuya distancia entre sí sea mínima.';
+
+        let bestEdge = geom.delaunayEdges[0];
+        geom.delaunayEdges.forEach(e => {
+          if (e.length < bestEdge.length) bestEdge = e;
+        });
+
+        if (bestEdge) {
+          const s1 = worldToScreen(bestEdge.u, canvas);
+          const s2 = worldToScreen(bestEdge.v, canvas);
+          ctx.save();
+          ctx.strokeStyle = '#10b981';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(s1.x, s1.y);
+          ctx.lineTo(s2.x, s2.y);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        bannerEl.innerHTML = `El par más cercano de toda la nube $S$ es <strong>(${bestEdge.u.id}, ${bestEdge.v.id})</strong> con distancia mínima $d = ${bestEdge.length.toFixed(2)}$.`;
+        theoryEl.innerHTML = `
+          <p><strong>Enunciado (Prob. 3):</strong> Encontrar el par de puntos de $S$ cuya distancia entre sí sea mínima.</p>
+          <p class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 font-semibold">
+            Solución: Se resuelve en <strong>tiempo lineal $O(n)$</strong> una vez conocida la solución del Problema 2 (tomando el mínimo de los $n$ vecinos más cercanos).
+          </p>
+        `;
+        const sortedEdges = [...geom.delaunayEdges].sort((a, b) => a.length - b.length);
+        dataEl.innerHTML = sortedEdges.slice(0, 8).map((e, idx) => `
+          <div class="p-2 rounded-lg flex justify-between ${idx === 0 ? 'bg-emerald-100 text-emerald-950 font-bold border border-emerald-300' : 'bg-slate-50 text-slate-600'}">
+            <span>${idx + 1}. Par (${e.u.id}, ${e.v.id})</span>
+            <span>d = ${e.length.toFixed(2)} ${idx === 0 ? '★ MÍNIMO' : ''}</span>
+          </div>
+        `).join('');
+
+      } else if (currentProblem === 4) {
+        titleEl.textContent = 'Problema 4: El vecino más cercano a un nuevo punto p';
+        subEl.textContent = 'Arrastra el punto verde p por el lienzo o haz clic para moverlo y localizar su célula Vor(p_i).';
+
+        let closestSite = mainCloud[0];
+        let minD = dist(queryPointP, mainCloud[0]);
+        mainCloud.forEach(pt => {
+          const d = dist(queryPointP, pt);
+          if (d < minD) { minD = d; closestSite = pt; }
+        });
+
+        const cell = geom.cells.find(c => c.site.id === closestSite.id);
+        if (cell) {
+          ctx.save();
+          ctx.beginPath();
+          cell.poly.forEach((v, idx) => {
+            const s = worldToScreen(v, canvas);
+            if (idx === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          });
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(16, 185, 129, 0.22)';
+          ctx.fill();
+          ctx.strokeStyle = '#059669';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        const sp = worldToScreen(queryPointP, canvas);
+        const sc = worldToScreen(closestSite, canvas);
+        ctx.save();
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(sp.x, sp.y);
+        ctx.lineTo(sc.x, sc.y);
+        ctx.stroke();
+        ctx.restore();
+
+        drawGeneratorNode(ctx, canvas, queryPointP, '#10b981', '#ffffff', 13, '#34d399');
+
+        bannerEl.innerHTML = `El punto de consulta $p = (${queryPointP.x}, ${queryPointP.y})$ cae dentro de la célula <strong class="text-emerald-700">$\\operatorname{Vor}(${closestSite.id})$</strong> $\\implies$ su vecino más cercano en $S$ es <strong>${closestSite.id}</strong> ($d = ${minD.toFixed(2)}$).`;
+        theoryEl.innerHTML = `
+          <p><strong>Enunciado (Prob. 4):</strong> Dado un nuevo punto $p \\notin S$, encontrar el elemento de $S$ más cercano a $p$.</p>
+          <p class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 font-semibold">
+            Solución: Basta determinar en qué región $\\operatorname{Vor}(p_i)$ del diagrama $\\operatorname{Vor}(S)$ se encuentra localizado el punto $p$.
+          </p>
+        `;
+        const allDists = mainCloud.map(pt => ({ pt, d: dist(queryPointP, pt) })).sort((a, b) => a.d - b.d);
+        dataEl.innerHTML = allDists.map((item, idx) => `
+          <div class="p-2 rounded-lg flex justify-between ${idx === 0 ? 'bg-emerald-100 text-emerald-950 font-bold border border-emerald-300' : 'bg-slate-50 text-slate-600'}">
+            <span>d(p, ${item.pt.id})</span>
+            <span>${item.d.toFixed(2)} ${idx === 0 ? '← Celda Vor(' + item.pt.id + ')' : ''}</span>
+          </div>
+        `).join('');
+
+      } else if (currentProblem === 5) {
+        titleEl.textContent = 'Problema 5: Mayor Círculo Vacío con centro en CH(S)';
+        subEl.textContent = 'Alcanza su máximo en un vértice de los polígonos obtenidos al intersecar Vor(S) ∩ CH(S).';
+
+        const candidates = computeLargestEmptyCircle(mainCloud, geom);
+        const bestC = candidates[0];
+
+        // Dibujar CH(S) en rojo como en la diapositiva de clase
+        if (geom.hull.length >= 3) {
+          ctx.save();
+          ctx.beginPath();
+          geom.hull.forEach((p, idx) => {
+            const s = worldToScreen(p, canvas);
+            if (idx === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          });
+          ctx.closePath();
+          ctx.strokeStyle = '#dc2626';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Dibujar los centros candidatos
+        candidates.forEach((c, idx) => {
+          const sc = worldToScreen(c, canvas);
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(sc.x, sc.y, idx === 0 ? 7 : 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = idx === 0 ? '#7c3aed' : '#cbd5e1';
+          ctx.fill();
+          ctx.strokeStyle = '#4c1d95';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.restore();
+        });
+
+        // Dibujar el Mayor Círculo Vacío en morado (idéntico a la diapositiva de clase)
+        if (bestC) {
+          const sc = worldToScreen(bestC, canvas);
+          const sEdge = worldToScreen({ x: bestC.x + bestC.r, y: bestC.y }, canvas);
+          const rPx = Math.abs(sEdge.x - sc.x);
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(sc.x, sc.y, rPx, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(124, 58, 237, 0.16)';
+          ctx.fill();
+          ctx.strokeStyle = '#7c3aed';
+          ctx.lineWidth = 3.5;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        bannerEl.innerHTML = bestC
+          ? `Mayor círculo vacío (en morado): Centro en $c^* = (${bestC.x.toFixed(2)}, ${bestC.y.toFixed(2)}) \\in \\operatorname{Vor}(S) \\cap CH(S)$ con radio máximo $R = ${bestC.r.toFixed(2)}$.`
+          : '';
+        theoryEl.innerHTML = `
+          <p><strong>Enunciado (Prob. 5):</strong> Encontrar el mayor círculo que no contenga ningún punto de $S$ y cuyo centro esté dentro de $CH(S)$.</p>
+          <p class="p-3 rounded-xl bg-purple-50 border border-purple-200 text-purple-950">
+            <strong>Solución de Examen:</strong> Se define $f(x,y) = d((x,y), S)$ (distancia a su punto más cercano de $S$). Se prueba que $f$ restringida a $CH(S)$ alcanza su máximo en un <strong>vértice de uno de los polígonos de $\\operatorname{Vor}(S) \\cap CH(S)$</strong> (es decir: o bien un vértice de Voronoi interior a $CH(S)$, o bien la intersección de una arista de Voronoi con el borde de $CH(S)$).
+          </p>
+        `;
+        dataEl.innerHTML = candidates.slice(0, 10).map((c, idx) => `
+          <div class="p-2 rounded-lg flex flex-col ${idx === 0 ? 'bg-purple-100 text-purple-950 font-bold border border-purple-300' : 'bg-slate-50 text-slate-600'}">
+            <div class="flex justify-between">
+              <span>${idx + 1}. Centro (${c.x.toFixed(2)}, ${c.y.toFixed(2)})</span>
+              <span>R = ${c.r.toFixed(2)} ${idx === 0 ? '★ MÁX' : ''}</span>
+            </div>
+            <span class="text-[10px] opacity-80">${c.type}</span>
+          </div>
+        `).join('');
+
+      } else if (currentProblem === 6) {
+        titleEl.textContent = 'Problema 6: Triangulación de la nube de puntos S';
+        subEl.textContent = 'Encontrar una triangulación que contenga a los puntos de S como vértices.';
+
+        ctx.save();
+        ctx.strokeStyle = '#e11d48';
+        ctx.lineWidth = 2.8;
+        geom.delaunayEdges.forEach(e => {
+          const s1 = worldToScreen(e.u, canvas);
+          const s2 = worldToScreen(e.v, canvas);
+          ctx.beginPath();
+          ctx.moveTo(s1.x, s1.y);
+          ctx.lineTo(s2.x, s2.y);
+          ctx.stroke();
+        });
+        ctx.restore();
+
+        bannerEl.innerHTML = `Sol.: Considerar el grafo dual de $\\operatorname{Vor}(S)$, que bajo posición general proporciona la <strong>Triangulación de Delaunay</strong> (${geom.triangles.length} triángulos).`;
+        theoryEl.innerHTML = `
+          <p><strong>Enunciado (Prob. 6):</strong> Encontrar una triangulación que contenga a los puntos de $S$ como vértices.</p>
+          <p class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 font-semibold">
+            Solución: Basta considerar la <strong>Triangulación de Delaunay</strong>, obtenida en tiempo lineal a partir del diagrama de Voronoi $\\operatorname{Vor}(S)$ uniendo mediante segmentos los pares de puntos cuyas regiones de Voronoi comparten una arista común.
+          </p>
+        `;
+        dataEl.innerHTML = geom.triangles.map((t, idx) => `
+          <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex justify-between">
+            <span>Triángulo #${idx + 1}: <strong>(${t.verts.map(v => v.id).join(', ')})</strong></span>
+            <span>R_circ = ${t.cc.r.toFixed(2)}</span>
+          </div>
+        `).join('');
+
+      } else if (currentProblem === 7) {
+        titleEl.textContent = 'Problema 7: Árbol Spanning Minimal Euclídeo sobre Delaunay';
+        subEl.textContent = 'El Árbol Generador de Longitud Mínima es un subgrafo de la Triangulación de Delaunay.';
+
+        // Dibujar aristas de Delaunay en rojo suave discontinuo
+        ctx.save();
+        ctx.strokeStyle = '#fda4af';
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([5, 4]);
+        geom.delaunayEdges.forEach(e => {
+          const s1 = worldToScreen(e.u, canvas);
+          const s2 = worldToScreen(e.v, canvas);
+          ctx.beginPath();
+          ctx.moveTo(s1.x, s1.y);
+          ctx.lineTo(s2.x, s2.y);
+          ctx.stroke();
+        });
+        ctx.restore();
+
+        const mstEdges = computeDelaunayPrimSteps(mainCloud, geom.delaunayEdges);
+        const shownEdges = mstEdges.slice(0, prob7StepIdx);
+        document.getElementById('prob7-step-label').textContent = `${shownEdges.length}/${mstEdges.length} aristas`;
+
+        // Dibujar aristas del Árbol Spanning Minimal en verde esmeralda grueso
+        ctx.save();
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 4.5;
+        shownEdges.forEach(e => {
+          const s1 = worldToScreen(e.u, canvas);
+          const s2 = worldToScreen(e.v, canvas);
+          ctx.beginPath();
+          ctx.moveTo(s1.x, s1.y);
+          ctx.lineTo(s2.x, s2.y);
+          ctx.stroke();
+        });
+        ctx.restore();
+
+        const totalLen = shownEdges.reduce((acc, e) => acc + e.length, 0);
+        bannerEl.innerHTML = `Árbol Spanning Minimal construido mediante Prim sobre las aristas de Delaunay: <strong>${shownEdges.length} aristas</strong> con longitud total $L(T) = ${totalLen.toFixed(2)}$.`;
+        theoryEl.innerHTML = `
+          <p><strong>Enunciado (Prob. 7):</strong> Construir un árbol de longitud mínima que tenga a los puntos de $S$ como vértices.</p>
+          <p class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950">
+            <strong>Propiedad Clave (ResumenTeoria pág. 20):</strong> En cada iteración de Prim se añade la arista $(u',v')$ tal que $d(u',v') = \\min\\{d(u,v) \\mid u \\in T, v \\in S \\setminus T\\}$. Toda arista del Árbol Spanning Minimal Euclídeo pertenece necesariamente a la <strong>Triangulación de Delaunay</strong>.
+          </p>
+        `;
+        dataEl.innerHTML = mstEdges.map((e, idx) => `
+          <div class="p-2 rounded-lg flex justify-between ${idx < prob7StepIdx ? 'bg-emerald-50 text-emerald-950 font-bold border border-emerald-200' : 'bg-slate-50 text-slate-400'}">
+            <span>Paso ${idx + 1}: Arista (${e.u.id}, ${e.v.id})</span>
+            <span>d = ${e.length.toFixed(2)}</span>
+          </div>
+        `).join('');
+      }
+
+      // Dibujar todos los generadores encima
+      mainCloud.forEach((pt, idx) => {
+        const isSel = currentProblem === 1 && idx === selectedSiteIdx;
+        drawGeneratorNode(ctx, canvas, pt, isSel ? '#4f46e5' : '#0f172a', '#ffffff', isSel ? 13 : 11);
+      });
+    }
+
+    // =========================================================================
+    // MÓDULO 4: SIMULADOR DIVIDE Y VENCERÁS (16 PUNTOS DE LAS DIAPOSITIVAS)
+    // =========================================================================
+    // Coordenadas fieles al ejemplo de los 16 puntos de las diapositivas de clase:
+    // S1 (Izquierda, azul): {1, 2, 3, 4, 5, 14, 15, 16}
+    // S2 (Derecha, rojo): {6, 7, 8, 9, 10, 11, 12, 13}
+    const dividePoints16 = [
+      // S1 (grupo izquierdo)
+      { id: '1',  x: 9.6,  y: 10.6, group: 'S1' },
+      { id: '2',  x: 9.1,  y: 8.6,  group: 'S1' },
+      { id: '3',  x: 6.7,  y: 5.0,  group: 'S1' },
+      { id: '4',  x: 10.0, y: 4.1,  group: 'S1' },
+      { id: '5',  x: 7.0,  y: 2.3,  group: 'S1' },
+      { id: '14', x: 4.1,  y: 9.6,  group: 'S1' },
+      { id: '15', x: 4.7,  y: 6.7,  group: 'S1' },
+      { id: '16', x: 3.4,  y: 3.9,  group: 'S1' },
+      // S2 (grupo derecho)
+      { id: '6',  x: 15.0, y: 10.1, group: 'S2' },
+      { id: '7',  x: 12.8, y: 8.2,  group: 'S2' },
+      { id: '8',  x: 12.2, y: 6.1,  group: 'S2' },
+      { id: '9',  x: 13.2, y: 4.8,  group: 'S2' },
+      { id: '10', x: 12.1, y: 2.3,  group: 'S2' },
+      { id: '11', x: 14.7, y: 7.1,  group: 'S2' },
+      { id: '12', x: 16.2, y: 4.9,  group: 'S2' },
+      { id: '13', x: 17.8, y: 7.2,  group: 'S2' }
+    ];
+
+    let divStep = 0;
+    let divTimer = null;
+    let cachedDivideData = null;
+
+    function buildDivideAndConquerData() {
+      const S1 = dividePoints16.filter(p => p.group === 'S1');
+      const S2 = dividePoints16.filter(p => p.group === 'S2');
+      const vor1 = computeVoronoiAndDelaunay(S1);
+      const vor2 = computeVoronoiAndDelaunay(S2);
+      const vorAll = computeVoronoiAndDelaunay(dividePoints16);
+
+      // Construir la cadena poligonal separadora sigma exacta entre S1 y S2
+      // Recopilamos todos los segmentos de Vor(S) que separan un punto de S1 y un punto de S2
+      const rawSegments = [];
+      vorAll.cells.forEach(cell => {
+        if (cell.site.group !== 'S1') return;
+        const m = cell.poly.length;
+        for (let i = 0; i < m; i++) {
+          const vA = cell.poly[i];
+          const vB = cell.poly[(i + 1) % m];
+          const neighborId = vA.edgeTag;
+          const neighborPt = dividePoints16.find(p => p.id === neighborId);
+          if (neighborPt && neighborPt.group === 'S2') {
+            // Ordenar el segmento de arriba (mayor Y) a abajo (menor Y)
+            const top = vA.y >= vB.y ? vA : vB;
+            const bot = vA.y >= vB.y ? vB : vA;
+            rawSegments.push({
+              pL: cell.site.id,
+              pR: neighborPt.id,
+              top: { x: top.x, y: top.y },
+              bot: { x: bot.x, y: bot.y },
+              midY: 0.5 * (top.y + bot.y)
+            });
+          }
+        }
+      });
+
+      // Ordenar los tramos de sigma de arriba a abajo (de +infinito a -infinito)
+      rawSegments.sort((a, b) => b.top.y - a.top.y);
+
+      const steps = [
+        {
+          badge: 'Paso 1 · División Vertical en S₁ y S₂',
+          bisector: 'Recta vertical divisoria x = 11.0',
+          desc: 'Dividimos la nube de 16 puntos mediante una recta vertical en dos subconjuntos de 8 puntos: S₁ (en azul, a la izquierda) y S₂ (en rojo, a la derecha).',
+          showSplitLine: true,
+          showVor1: false,
+          showVor2: false,
+          sigmaCount: 0,
+          merged: false
+        },
+        {
+          badge: 'Paso 2a · Construir Vor(S₁) recursivamente',
+          bisector: 'Diagrama izquierdo Vor(S₁) en azul discontinuo',
+          desc: 'Construimos el diagrama de Voronoi Vor(S₁) para los 8 puntos de la mitad izquierda.',
+          showSplitLine: false,
+          showVor1: true,
+          showVor2: false,
+          sigmaCount: 0,
+          merged: false
+        },
+        {
+          badge: 'Paso 2b · Construir Vor(S₂) y Superponer',
+          bisector: 'Vor(S₁) (azul) + Vor(S₂) (rojo)',
+          desc: 'Construimos el diagrama de Voronoi Vor(S₂) para la mitad derecha (rojo discontinuo). Ahora necesitamos coserlos mediante la cadena poligonal σ.',
+          showSplitLine: false,
+          showVor1: true,
+          showVor2: true,
+          sigmaCount: 0,
+          merged: false
+        }
+      ];
+
+      rawSegments.forEach((seg, idx) => {
+        const nextSeg = rawSegments[idx + 1];
+        let hitReason = 'Continúa como semirrecta hacia -∞';
+        if (nextSeg) {
+          if (nextSeg.pR !== seg.pR) {
+            hitReason = `Choca con arista de Vor(S₂) ⇒ cambia ${seg.pR} por ${nextSeg.pR}`;
+          } else {
+            hitReason = `Choca con arista de Vor(S₁) ⇒ cambia ${seg.pL} por ${nextSeg.pL}`;
+          }
+        }
+        seg.hitReason = hitReason;
+
+        steps.push({
+          badge: `Paso 3 (Tramo ${idx + 1}/${rawSegments.length}) · Mediatriz m(${seg.pL}, ${seg.pR})`,
+          bisector: `Par activo (p_L, p_R) = (${seg.pL}, ${seg.pR})`,
+          desc: `Trazamos la mediatriz entre el punto ${seg.pL} ∈ S₁ y el punto ${seg.pR} ∈ S₂. ${hitReason}.`,
+          showSplitLine: false,
+          showVor1: true,
+          showVor2: true,
+          sigmaCount: idx + 1,
+          activePair: [seg.pL, seg.pR],
+          merged: false
+        });
+      });
+
+      steps.push({
+        badge: 'Paso 4 · Fusión Final: (Vor(S₁) ∩ π_L) ∪ (Vor(S₂) ∩ π_R)',
+        bisector: 'Diagrama Vor(S) fusionado en O(n)',
+        desc: 'Conservamos de Vor(S₁) únicamente la parte situada a la izquierda de σ (π_L) y de Vor(S₂) la parte situada a la derecha de σ (π_R), podando las semirrectas que cruzaban al lado opuesto.',
+        showSplitLine: false,
+        showVor1: false,
+        showVor2: false,
+        sigmaCount: rawSegments.length,
+        merged: true
+      });
+
+      cachedDivideData = { S1, S2, vor1, vor2, vorAll, rawSegments, steps };
+    }
+
+    function renderDivideModule() {
+      if (!cachedDivideData) buildDivideAndConquerData();
+      const { vor1, vor2, vorAll, rawSegments, steps } = cachedDivideData;
+      const step = steps[divStep];
+
+      const canvas = document.getElementById('canvas-divide');
+      const ctx = canvas.getContext('2d');
+      drawBaseGrid(ctx, canvas);
+
+      document.getElementById('div-step-counter').textContent = `${divStep}/${steps.length - 1}`;
+      document.getElementById('div-step-badge').textContent = step.badge;
+      document.getElementById('div-active-bisector').textContent = step.bisector;
+      document.getElementById('div-step-desc').textContent = step.desc;
+
+      // 1. Recta divisoria vertical del Paso 1
+      if (step.showSplitLine) {
+        const sTop = worldToScreen({ x: 11.0, y: WY_MAX }, canvas);
+        const sBot = worldToScreen({ x: 11.0, y: WY_MIN }, canvas);
+        ctx.save();
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([7, 5]);
+        ctx.beginPath();
+        ctx.moveTo(sTop.x, sTop.y);
+        ctx.lineTo(sBot.x, sBot.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 2. Dibujar Vor(S1) en azul discontinuo
+      if (step.showVor1) {
+        vor1.cells.forEach(cell => {
+          ctx.save();
+          ctx.beginPath();
+          cell.poly.forEach((v, i) => {
+            const s = worldToScreen(v, canvas);
+            if (i === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          });
+          ctx.closePath();
+          ctx.strokeStyle = '#2563eb';
+          ctx.lineWidth = 1.6;
+          ctx.setLineDash([5, 4]);
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+
+      // 3. Dibujar Vor(S2) en rojo discontinuo
+      if (step.showVor2) {
+        vor2.cells.forEach(cell => {
+          ctx.save();
+          ctx.beginPath();
+          cell.poly.forEach((v, i) => {
+            const s = worldToScreen(v, canvas);
+            if (i === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          });
+          ctx.closePath();
+          ctx.strokeStyle = '#e11d48';
+          ctx.lineWidth = 1.6;
+          ctx.setLineDash([5, 4]);
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+
+      // 4. Si estamos en el Paso 4 (fusionado), dibujar Vor(S) limpio con colores a izquierda y derecha de sigma
+      if (step.merged) {
+        vorAll.cells.forEach(cell => {
+          const isLeft = cell.site.group === 'S1';
+          ctx.save();
+          ctx.beginPath();
+          cell.poly.forEach((v, i) => {
+            const s = worldToScreen(v, canvas);
+            if (i === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          });
+          ctx.closePath();
+          ctx.fillStyle = isLeft ? 'rgba(37, 99, 235, 0.06)' : 'rgba(225, 29, 72, 0.06)';
+          ctx.fill();
+          ctx.strokeStyle = isLeft ? '#1d4ed8' : '#be123c';
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+
+      // 5.Si hay un par activo (p_L, p_R), unirlos con línea punteada como en las diapositivas
+      if (step.activePair) {
+        const pL = dividePoints16.find(p => p.id === step.activePair[0]);
+        const pR = dividePoints16.find(p => p.id === step.activePair[1]);
+        if (pL && pR) {
+          const sL = worldToScreen(pL, canvas);
+          const sR = worldToScreen(pR, canvas);
+          ctx.save();
+          ctx.strokeStyle = '#0f172a';
+          ctx.lineWidth = 1.8;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(sL.x, sL.y);
+          ctx.lineTo(sR.x, sR.y);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // 6. Dibujar los tramos construidos de la cadena poligonal sigma con flechas negras
+      for (let i = 0; i < step.sigmaCount; i++) {
+        const seg = rawSegments[i];
+        // Recortar visualmente a la ventana para que la flecha sea visible
+        const clipToBox = (A, B) => {
+          let p0 = { ...A }, p1 = { ...B };
+          const box = [
+            { x: 0.4, y: 0.4 }, { x: 19.6, y: 0.4 },
+            { x: 19.6, y: 12.4 }, { x: 0.4, y: 12.4 }
+          ];
+          const lerp = (u, v, t) => ({ x: u.x + t * (v.x - u.x), y: u.y + t * (v.y - u.y) });
+          if (p0.y > 12.4) {
+            const t = (12.4 - p0.y) / (p1.y - p0.y);
+            p0 = lerp(p0, p1, t);
+          }
+          if (p1.y < 0.4) {
+            const t = (0.4 - p0.y) / (p1.y - p0.y);
+            p1 = lerp(p0, p1, t);
+          }
+          return [p0, p1];
+        };
+
+        const [visTop, visBot] = clipToBox(seg.top, seg.bot);
+        const sTop = worldToScreen(visTop, canvas);
+        const sBot = worldToScreen(visBot, canvas);
+        const isCurrent = i === step.sigmaCount - 1 && !step.merged;
+
+        ctx.save();
+        ctx.strokeStyle = isCurrent ? '#f59e0b' : '#0f172a';
+        ctx.fillStyle = isCurrent ? '#f59e0b' : '#0f172a';
+        ctx.lineWidth = isCurrent ? 4 : 3.2;
+        ctx.beginPath();
+        ctx.moveTo(sTop.x, sTop.y);
+        ctx.lineTo(sBot.x, sBot.y);
+        ctx.stroke();
+
+        // Punta de flecha hacia abajo indicando el sentido de recorrido de sigma
+        const angle = Math.atan2(sBot.y - sTop.y, sBot.x - sTop.x);
+        ctx.beginPath();
+        ctx.moveTo(sBot.x, sBot.y);
+        ctx.lineTo(sBot.x - 9 * Math.cos(angle - Math.PI / 6), sBot.y - 9 * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(sBot.x - 9 * Math.cos(angle + Math.PI / 6), sBot.y - 9 * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 7. Dibujar los 16 puntos numerados (S1 en azul, S2 en rojo)
+      dividePoints16.forEach(pt => {
+        const isActive = step.activePair && step.activePair.includes(pt.id);
+        const bg = pt.group === 'S1' ? '#1d4ed8' : '#be123c';
+        drawGeneratorNode(ctx, canvas, pt, bg, '#ffffff', isActive ? 13 : 10.5, isActive ? '#f59e0b' : null);
+      });
+
+      // 8. Poblar tabla de tramos de sigma
+      const tbody = document.getElementById('div-sigma-tbody');
+      tbody.innerHTML = rawSegments.map((seg, idx) => {
+        const activeRow = idx === step.sigmaCount - 1 && !step.merged;
+        const doneRow = idx < step.sigmaCount;
+        return `
+          <tr class="${activeRow ? 'bg-amber-100 font-bold text-slate-950' : doneRow ? 'bg-white text-slate-800' : 'bg-slate-50 text-slate-400'}">
+            <td class="py-1.5 px-2.5">#${idx + 1}</td>
+            <td class="py-1.5 px-2.5 font-bold">m(${seg.pL}, ${seg.pR})</td>
+            <td class="py-1.5 px-2.5 text-[11px]">${seg.hitReason}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('div-btn-prev').disabled = divStep === 0;
+      document.getElementById('div-btn-next').disabled = divStep === steps.length - 1;
+    }
+
+    function divFirst() { if (divTimer) divToggleAuto(); divStep = 0; renderDivideModule(); }
+    function divLast() { if (divTimer) divToggleAuto(); divStep = cachedDivideData.steps.length - 1; renderDivideModule(); }
+    function divPrev() { if (divStep > 0) { divStep--; renderDivideModule(); } }
+    function divNext() { if (divStep < cachedDivideData.steps.length - 1) { divStep++; renderDivideModule(); } else if (divTimer) divToggleAuto(); }
+    function divToggleAuto() {
+      if (divTimer) {
+        clearInterval(divTimer);
+        divTimer = null;
+      } else {
+        if (!cachedDivideData) buildDivideAndConquerData();
+        if (divStep === cachedDivideData.steps.length - 1) divStep = 0;
+        divTimer = setInterval(() => {
+          if (divStep < cachedDivideData.steps.length - 1) {
+            divStep++;
+            renderDivideModule();
+          } else {
+            clearInterval(divTimer);
+            divTimer = null;
+            updateDivAutoBtn();
+          }
+        }, 1100);
+      }
+      updateDivAutoBtn();
+    }
+
+    function updateDivAutoBtn() {
+      const btn = document.getElementById('div-btn-auto');
+      if (divTimer) {
+        btn.textContent = '⏸ Pausar';
+        btn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 shadow-sm';
+      } else {
+        btn.textContent = '▶ Reproducir fusión';
+        btn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm';
+      }
+    }
+
+    // =========================================================================
+    // EVENTOS DE RATÓN / TÁCTILES EN LOS LIENZOS INTERACTIVOS
+    // =========================================================================
+    function setupInteractiveCanvases() {
+      // 1. Canvas de Voronoi (arrastrar generadores o seleccionar)
+      const cVor = document.getElementById('canvas-voronoi');
+      let dragIdxVor = -1;
+
+      const getPos = (e, canvas) => {
+        const rect = canvas.getBoundingClientRect();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (cx - rect.left) * (canvas.width / rect.width),
+          y: (cy - rect.top) * (canvas.height / rect.height)
+        };
+      };
+
+      cVor.addEventListener('mousedown', e => {
+        const pos = getPos(e, cVor);
+        for (let i = 0; i < mainCloud.length; i++) {
+          const s = worldToScreen(mainCloud[i], cVor);
+          if (Math.hypot(pos.x - s.x, pos.y - s.y) < 18) {
+            selectedSiteIdx = i;
+            dragIdxVor = i;
+            renderVoronoiModule();
+            return;
+          }
+        }
+        // Comprobar si ha hecho clic sobre un vértice de Voronoi para mostrar su circunferencia vacía
+        const geom = computeVoronoiAndDelaunay(mainCloud);
+        for (let j = 0; j < geom.vorVertices.length; j++) {
+          const sv = worldToScreen(geom.vorVertices[j], cVor);
+          if (Math.hypot(pos.x - sv.x, pos.y - sv.y) < 14) {
+            activeVorVertexIdx = j;
+            document.getElementById('chk-vor-circles').checked = true;
+            renderVoronoiModule();
+            return;
+          }
+        }
+      });
+
+      cVor.addEventListener('mousemove', e => {
+        if (dragIdxVor === -1) return;
+        const pos = getPos(e, cVor);
+        const w = screenToWorld(pos.x, pos.y, cVor);
+        mainCloud[dragIdxVor].x = w.x;
+        mainCloud[dragIdxVor].y = w.y;
+        renderVoronoiModule();
+      });
+
+      window.addEventListener('mouseup', () => {
+        dragIdxVor = -1;
+        draggingQueryP = false;
+      });
+
+      // 2. Canvas de Delaunay (clic para seleccionar triángulo y ver su circunferencia circunscrita)
+      const cDel = document.getElementById('canvas-delaunay');
+      cDel.addEventListener('click', e => {
+        const pos = getPos(e, cDel);
+        const w = screenToWorld(pos.x, pos.y, cDel);
+        const geom = computeVoronoiAndDelaunay(mainCloud);
+
+        for (let i = 0; i < geom.triangles.length; i++) {
+          const [A, B, C] = geom.triangles[i].verts;
+          if (signedArea(A, B, w) >= 0 && signedArea(B, C, w) >= 0 && signedArea(C, A, w) >= 0) {
+            activeDelaunayTriIdx = i;
+            renderDelaunayModule();
+            return;
+          }
+        }
+      });
+
+      // 3. Canvas de los 7 Problemas (seleccionar p_i en Prob 1 o arrastrar punto verde p en Prob 4)
+      const cProb = document.getElementById('canvas-problems');
+      let draggingQueryP = false;
+
+      cProb.addEventListener('mousedown', e => {
+        const pos = getPos(e, cProb);
+        if (currentProblem === 4) {
+          const sp = worldToScreen(queryPointP, cProb);
+          if (Math.hypot(pos.x - sp.x, pos.y - sp.y) < 22) {
+            draggingQueryP = true;
+            return;
+          }
+          const w = screenToWorld(pos.x, pos.y, cProb);
+          queryPointP.x = w.x;
+          queryPointP.y = w.y;
+          draggingQueryP = true;
+          renderProblemsModule();
+          return;
+        }
+
+        for (let i = 0; i < mainCloud.length; i++) {
+          const s = worldToScreen(mainCloud[i], cProb);
+          if (Math.hypot(pos.x - s.x, pos.y - s.y) < 18) {
+            selectedSiteIdx = i;
+            renderProblemsModule();
+            return;
+          }
+        }
+      });
+
+      cProb.addEventListener('mousemove', e => {
+        if (!draggingQueryP || currentProblem !== 4) return;
+        const pos = getPos(e, cProb);
+        const w = screenToWorld(pos.x, pos.y, cProb);
+        queryPointP.x = w.x;
+        queryPointP.y = w.y;
+        renderProblemsModule();
+      });
+    }
+
+    // Inicialización al cargar la página
+    window.onload = function () {
+      setupInteractiveCanvases();
+      loadMainCloudPreset('general10');
+      buildDivideAndConquerData();
+    };
+  </script>
+</body>
+</html>

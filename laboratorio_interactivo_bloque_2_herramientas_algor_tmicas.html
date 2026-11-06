@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GAP - Bloque 2: Herramientas Algorítmicas | Universidad de Sevilla</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .bar-transition {
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .node-transition {
+      transition: all 0.3s ease;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- HEADER ACADÉMICO -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-bold text-lg shadow-inner">
+          GAP
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
+              Bloque 2 · Sección 1
+            </span>
+            <span class="text-xs text-slate-400 hidden sm:inline">Grado en Matemáticas · Universidad de Sevilla</span>
+          </div>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white mt-0.5">
+            Introducción a la Geometría Computacional: Herramientas Algorítmicas
+          </h1>
+        </div>
+      </div>
+
+      <!-- PESTAÑAS PRINCIPALES -->
+      <nav class="flex bg-slate-800/90 p-1 rounded-xl border border-slate-700 self-start md:self-auto">
+        <button onclick="switchMainTab('sorting')" id="tab-btn-sorting"
+          class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-amber-500 text-slate-950 shadow">
+          1.1 Ordenación
+        </button>
+        <button onclick="switchMainTab('greedy')" id="tab-btn-greedy"
+          class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-300 hover:text-white">
+          1.2 Voraces
+        </button>
+        <button onclick="switchMainTab('search')" id="tab-btn-search"
+          class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-300 hover:text-white">
+          1.3 Búsqueda (BEP/BEA)
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+    <!-- BANNER RECORDATORIO DE EXAMEN -->
+    <div class="bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-sm border border-indigo-500/30 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2 text-indigo-300 text-xs font-bold uppercase tracking-wider">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Enfoque para el Examen (con ResumenTeoria disponible)
+        </div>
+        <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+          En el examen tienes el PDF <span class="mono text-amber-300">ResumenTeoria</span>, donde aparece el pseudocódigo literal. Tu objetivo es <strong class="text-white">saber trazar a mano cada pasada/iteración</strong>, justificar su <strong class="text-white">complejidad $T(n)$ en el peor caso</strong> y construir las tablas de seguimiento (<span class="mono text-indigo-300">Añadir / Quitar / Q</span> o conjuntos de candidatos).
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2 shrink-0">
+        <div class="px-3 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700 text-xs">
+          <span class="text-slate-400">Complejidad:</span>
+          <span class="font-semibold text-amber-300 ml-1">Peor caso $T(n)$</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700 text-xs">
+          <span class="text-slate-400">Orden $O(f(n))$:</span>
+          <span class="font-semibold text-emerald-300 ml-1">$\exists C > 0, n_0 \mid T(n) \le C \cdot f(n)$</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCIÓN 1.1: ALGORITMOS DE ORDENACIÓN      -->
+    <!-- ========================================== -->
+    <section id="section-sorting" class="space-y-6">
+      <!-- Barra de configuración -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-1">Algoritmo:</span>
+          <button onclick="setSortAlgo('bubble')" id="btn-algo-bubble"
+            class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm">
+            Burbuja (Bubble Sort)
+          </button>
+          <button onclick="setSortAlgo('insertion')" id="btn-algo-insertion"
+            class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Inserción (Insertion Sort)
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Lista de entrada:</span>
+          <input type="text" id="sort-input" value="5, 2, 8, 1, 4, 3"
+            class="mono text-sm px-3 py-1.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-44" />
+          <button onclick="applyCustomSortList()"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-white hover:bg-slate-700 transition">
+            Aplicar
+          </button>
+          <button onclick="setPresetSortList('7, 3, 5, 1')"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 transition">
+            Ejemplo Diapositivas [7, 3, 5, 1]
+          </button>
+          <button onclick="setPresetSortList('5, 2, 8, 1, 4, 3')"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition">
+            Por defecto [5, 2, 8, 1, 4, 3]
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Panel Visual de Barras y Controles (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 id="sort-title" class="text-base sm:text-lg font-bold text-slate-900">
+                Algoritmo de Ordenación de Burbuja
+              </h2>
+              <p id="sort-subtitle" class="text-xs text-slate-500">
+                Compara pares adyacentes $(x_i, x_{i+1})$ e intercambia si $x_i > x_{i+1}$, fijando el máximo al final de cada pasada.
+              </p>
+            </div>
+            <div class="flex items-center gap-3 text-xs mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+              <span>Paso: <strong id="sort-step-counter" class="text-indigo-600">0/0</strong></span>
+              <span>|</span>
+              <span>Comp.: <strong id="sort-comp-counter" class="text-amber-600">0</strong></span>
+              <span>|</span>
+              <span>Interc.: <strong id="sort-swap-counter" class="text-emerald-600">0</strong></span>
+            </div>
+          </div>
+
+          <!-- Leyenda de colores -->
+          <div class="flex flex-wrap items-center gap-4 text-xs text-slate-600">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-400 inline-block border border-amber-500"></span> Comparando / Activo</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-rose-500 inline-block"></span> Intercambio / Desplazamiento</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Posición Fijada / Sublista Ordenada</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-300 inline-block"></span> Pendiente</span>
+          </div>
+
+          <!-- Escenario de Bloques / Barras -->
+          <div id="sort-bars-container" class="h-64 bg-slate-50 rounded-2xl border border-slate-200/80 p-6 flex items-end justify-center gap-3 sm:gap-5 relative overflow-hidden">
+            <!-- Generado por JS -->
+          </div>
+
+          <!-- Explicación del paso actual -->
+          <div class="bg-indigo-50/70 border border-indigo-200/80 rounded-xl p-4 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span id="sort-step-badge" class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-md">
+                Estado Inicial
+              </span>
+              <span id="sort-sublist-indicator" class="text-xs mono text-slate-600"></span>
+            </div>
+            <p id="sort-step-explanation" class="text-sm text-slate-800 font-medium leading-relaxed">
+              Pulsa "Siguiente paso" o "Reproducir automático" para comenzar la simulación.
+            </p>
+          </div>
+
+          <!-- Controles de reproducción -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-2">
+              <button onclick="sortReset()" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5">
+                ⟲ Reiniciar
+              </button>
+              <button onclick="sortPrev()" id="sort-btn-prev" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition disabled:opacity-40">
+                ◀ Paso anterior
+              </button>
+              <button onclick="sortNext()" id="sort-btn-next" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition disabled:opacity-40">
+                Siguiente paso ▶
+              </button>
+            </div>
+            <button onclick="sortToggleAuto()" id="sort-btn-auto" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition flex items-center gap-1.5">
+              ▶ Reproducir automático
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Derecho: Idea Clave de Examen + Traza de Pasadas (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          <!-- Tarjeta de Idea Clave para el Examen -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
+            <div class="flex items-center gap-2 text-amber-600 font-bold text-xs uppercase tracking-wider">
+              <span>★ Idea Clave para el Examen (ResumenTeoria)</span>
+            </div>
+            <div id="sort-exam-notes" class="text-xs sm:text-sm text-slate-700 space-y-2.5 leading-relaxed">
+              <!-- Rellenado dinámicamente según Burbuja o Inserción -->
+            </div>
+          </div>
+
+          <!-- Historial de pasadas (como en las diapositivas de clase) -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex-1 flex flex-col">
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Registro de Pasadas (Formato Pizarra / Examen)</h3>
+            <p class="text-xs text-slate-500 mb-3">Así se representa la traza del algoritmo paso a paso en las presentaciones de clase:</p>
+            <div id="sort-trace-log" class="flex-1 max-h-60 overflow-y-auto space-y-1.5 pr-1 mono text-xs">
+              <!-- Rellenado por JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECCIÓN 1.2: ALGORITMOS VORACES            -->
+    <!-- ========================================== -->
+    <section id="section-greedy" class="hidden space-y-6">
+      <!-- Sub-selector Voraces -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-1">Problema Voraz:</span>
+          <button onclick="setGreedyMode('coloring')" id="btn-greedy-coloring"
+            class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm">
+            a) Coloración de Vértices (6 Conferencias C1–C6)
+          </button>
+          <button onclick="setGreedyMode('mst')" id="btn-greedy-mst"
+            class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200">
+            b) Árbol Spanning Minimal (Prim vs. Kruskal)
+          </button>
+        </div>
+
+        <!-- Controles adicionales para MST (Prim vs Kruskal) -->
+        <div id="mst-subcontrols" class="hidden flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Variante A.S.M.:</span>
+          <button onclick="setMstAlgo('kruskal')" id="btn-mst-kruskal"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 shadow-sm transition">
+            Algoritmo de Kruskal
+          </button>
+          <button onclick="setMstAlgo('prim')" id="btn-mst-prim"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+            Algoritmo de Prim
+          </button>
+          <div id="prim-root-selector-wrap" class="hidden flex items-center gap-1.5 ml-2">
+            <label class="text-xs text-slate-500 font-medium">Inicio Prim:</label>
+            <select id="prim-start-node" onchange="changePrimRoot(this.value)" class="mono text-xs bg-slate-100 border border-slate-300 rounded-lg px-2 py-1 font-bold text-indigo-700">
+              <option value="a">Vértice a</option>
+              <option value="b">Vértice b</option>
+              <option value="c">Vértice c</option>
+              <option value="d">Vértice d</option>
+              <option value="e">Vértice e</option>
+              <option value="f">Vértice f</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Lienzo del Grafo (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 id="greedy-title" class="text-base sm:text-lg font-bold text-slate-900">
+                Coloración Voraz de Vértices (Asignación de 6 Conferencias C1–C6)
+              </h2>
+              <p id="greedy-subtitle" class="text-xs text-slate-500">
+                Los vértices representan conferencias y las aristas solapamientos de público. Buscamos minimizar el número de sesiones.
+              </p>
+            </div>
+            <div class="flex items-center gap-3 text-xs mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+              <span>Paso: <strong id="greedy-step-counter" class="text-indigo-600">0/0</strong></span>
+              <span id="greedy-weight-badge" class="hidden">| Peso Total $w(T)$: <strong id="greedy-total-weight" class="text-emerald-600">0</strong></span>
+            </div>
+          </div>
+
+          <!-- Lienzo SVG del Grafo Voraz -->
+          <div class="bg-slate-50 rounded-2xl border border-slate-200/80 p-3 flex items-center justify-center relative">
+            <svg id="greedy-svg" viewBox="0 0 600 370" class="w-full h-72 sm:h-80 select-none"></svg>
+          </div>
+
+          <!-- Explicación del paso actual -->
+          <div class="bg-indigo-50/70 border border-indigo-200/80 rounded-xl p-4 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span id="greedy-step-badge" class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-md">
+                Inicio
+              </span>
+              <span id="greedy-status-pill" class="text-xs mono font-semibold text-slate-600"></span>
+            </div>
+            <p id="greedy-step-explanation" class="text-sm text-slate-800 font-medium leading-relaxed"></p>
+          </div>
+
+          <!-- Controles de reproducción -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-2">
+              <button onclick="greedyReset()" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                ⟲ Reiniciar
+              </button>
+              <button onclick="greedyPrev()" id="greedy-btn-prev" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition disabled:opacity-40">
+                ◀ Paso anterior
+              </button>
+              <button onclick="greedyNext()" id="greedy-btn-next" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition disabled:opacity-40">
+                Siguiente paso ▶
+              </button>
+            </div>
+            <button onclick="greedyToggleAuto()" id="greedy-btn-auto" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition">
+              ▶ Reproducir automático
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Derecho Voraz: Estado de Conjuntos C, S y Examen (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          <!-- Estado en tiempo real de Sesiones o Conjuntos C / S / Descartadas -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+            <h3 id="greedy-state-title" class="text-sm font-bold text-slate-900">
+              Partición de Sesiones (Colores Asignados)
+            </h3>
+            <div id="greedy-state-content" class="space-y-3 text-xs">
+              <!-- Rellenado dinámicamente -->
+            </div>
+          </div>
+
+          <!-- Idea clave para el examen -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3 flex-1">
+            <div class="flex items-center gap-2 text-amber-600 font-bold text-xs uppercase tracking-wider">
+              <span>★ Esquema Voraz y Claves de Examen</span>
+            </div>
+            <div id="greedy-exam-notes" class="text-xs sm:text-sm text-slate-700 space-y-2.5 leading-relaxed">
+              <!-- Rellenado dinámicamente -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECCIÓN 1.3: ALGORITMOS DE BÚSQUEDA        -->
+    <!-- ========================================== -->
+    <section id="section-search" class="hidden space-y-6">
+      <!-- Barra de configuración Búsqueda -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-1">Estrategia:</span>
+          <button onclick="setSearchAlgo('dfs')" id="btn-search-dfs"
+            class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm">
+            Búsqueda en Profundidad (B.E.P. / DFS)
+          </button>
+          <button onclick="setSearchAlgo('bfs')" id="btn-search-bfs"
+            class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Búsqueda en Anchura (B.E.A. / BFS)
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-400">Grafo de Clase:</label>
+            <select id="search-graph-preset" onchange="changeSearchGraphPreset(this.value)"
+              class="text-xs font-semibold bg-slate-100 border border-slate-300 rounded-xl px-3 py-1.5 text-slate-800">
+              <option value="adj8">Ejercicio Lista Adyacencias {a..h} (Diapositivas)</option>
+              <option value="toys7">Ejemplo Habitación 7 Juguetes {a..g} (Diapositivas)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-400">Vértice Raíz $v$:</label>
+            <select id="search-root-select" onchange="changeSearchRoot(this.value)"
+              class="mono text-xs font-bold bg-amber-50 border border-amber-300 rounded-xl px-3 py-1.5 text-amber-900">
+              <!-- Opciones dinámicas -->
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Doble Panel Visual: Grafo Original (Izquierda) + Árbol Generador (Derecha) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h2 id="search-title" class="text-base sm:text-lg font-bold text-slate-900">
+                Búsqueda en Profundidad (B.E.P.) — Criterio Alfabético
+              </h2>
+              <p id="search-subtitle" class="text-xs text-slate-500">
+                Inspecciona siempre el <strong class="text-slate-700">Último(Q)</strong>: profundiza al primer vecino no visitado o retrocede (backtracking).
+              </p>
+            </div>
+            <div class="flex items-center gap-3 text-xs mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+              <span>Paso: <strong id="search-step-counter" class="text-indigo-600">0/0</strong></span>
+              <span>|</span>
+              <span>Visitados: <strong id="search-visited-counter" class="text-emerald-600">0/8</strong></span>
+            </div>
+          </div>
+
+          <!-- Dos lienzos lado a lado: Izquierda Grafo G, Derecha Árbol Generador T -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-50 rounded-2xl border border-slate-200/80 p-3 flex flex-col">
+              <div class="flex items-center justify-between mb-1 px-1">
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">1. Grafo Original $G = (V, A)$</span>
+                <span class="text-[11px] text-slate-500">Aristas rojas = en $T$</span>
+              </div>
+              <svg id="search-graph-svg" viewBox="0 0 360 300" class="w-full h-64 select-none"></svg>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl border border-slate-200/80 p-3 flex flex-col">
+              <div class="flex items-center justify-between mb-1 px-1">
+                <span class="text-xs font-bold text-indigo-700 uppercase tracking-wider">2. Árbol Generador Resultante $T$</span>
+                <span id="search-tree-root-label" class="text-[11px] mono text-indigo-600 font-semibold">Raíz: g</span>
+              </div>
+              <svg id="search-tree-svg" viewBox="0 0 360 300" class="w-full h-64 select-none"></svg>
+            </div>
+          </div>
+
+          <!-- Visualizador de la Lista Q activa -->
+          <div class="bg-slate-900 text-white rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <span id="search-q-role-badge" class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-amber-500 text-slate-950">
+                Pila Q (Último)
+              </span>
+              <span class="text-xs text-slate-400">Contenido actual de $Q$:</span>
+              <div id="search-q-visual" class="flex items-center gap-1.5 mono text-sm font-bold">
+                <!-- Nodos en Q -->
+              </div>
+            </div>
+            <div class="text-xs mono text-slate-300">
+              Orden de visita: <span id="search-visit-order" class="text-emerald-400 font-bold">—</span>
+            </div>
+          </div>
+
+          <!-- Explicación del paso actual -->
+          <div class="bg-indigo-50/70 border border-indigo-200/80 rounded-xl p-4 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span id="search-step-badge" class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-md">
+                Inicio
+              </span>
+              <span id="search-active-x" class="text-xs mono font-semibold text-slate-700"></span>
+            </div>
+            <p id="search-step-explanation" class="text-sm text-slate-800 font-medium leading-relaxed"></p>
+          </div>
+
+          <!-- Controles de reproducción -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-2">
+              <button onclick="searchReset()" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                ⟲ Reiniciar
+              </button>
+              <button onclick="searchPrev()" id="search-btn-prev" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition disabled:opacity-40">
+                ◀ Paso anterior
+              </button>
+              <button onclick="searchNext()" id="search-btn-next" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition disabled:opacity-40">
+                Siguiente paso ▶
+              </button>
+            </div>
+            <button onclick="searchToggleAuto()" id="search-btn-auto" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition">
+              ▶ Reproducir automático
+            </button>
+          </div>
+        </div>
+
+        <!-- Columna Derecha (4 cols): Tabla Oficial Añadir / Quitar / Q + Lista de Adyacencias -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+          <!-- Tabla oficial de las diapositivas: Añadir | Quitar | Q -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-bold text-slate-900">Tabla de Traza Oficial (Examen)</h3>
+              <span class="text-[11px] mono bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-semibold">Añadir | Quitar | Q</span>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">
+              Exactamente el formato de tabla de las diapositivas de clase para justificar el recorrido:
+            </p>
+            <div class="max-h-60 overflow-y-auto border border-slate-200 rounded-xl">
+              <table class="w-full text-left border-collapse mono text-xs">
+                <thead class="bg-slate-100 text-slate-700 sticky top-0">
+                  <tr>
+                    <th class="py-2 px-3 border-b border-slate-200">#</th>
+                    <th class="py-2 px-3 border-b border-slate-200 text-emerald-700">Añadir</th>
+                    <th class="py-2 px-3 border-b border-slate-200 text-rose-700">Quitar</th>
+                    <th class="py-2 px-3 border-b border-slate-200">Lista $Q$</th>
+                  </tr>
+                </thead>
+                <tbody id="search-trace-tbody" class="divide-y divide-slate-100">
+                  <!-- Filas generadas por JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Lista de Adyacencias y Diferencia Clave BEP vs BEA -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3 flex-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-600">★ Chuleta Examen: BEP vs. BEA</span>
+            </div>
+            <div class="text-xs text-slate-700 space-y-2 leading-relaxed">
+              <p>
+                Ambos algoritmos comparten exactamente la misma estructura en <span class="mono font-semibold">ResumenTeoria</span>; <strong>solo cambia una palabra</strong> al elegir el vértice activo $x$:
+              </p>
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <div class="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
+                  <div class="font-bold text-indigo-900 mb-0.5">B.E.P. (Profundidad)</div>
+                  <div class="mono text-[11px] text-indigo-700">$x := \text{Último}(Q)$</div>
+                  <div class="text-[11px] text-slate-600 mt-1">Se comporta como una <strong>Pila (LIFO)</strong>. Avanza y retrocede (backtracking).</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                  <div class="font-bold text-emerald-900 mb-0.5">B.E.A. (Anchura)</div>
+                  <div class="mono text-[11px] text-emerald-700">$x := \text{Primero}(Q)$</div>
+                  <div class="text-[11px] text-slate-600 mt-1">Se comporta como una <strong>Cola (FIFO)</strong>. Explora por niveles de distancia.</div>
+                </div>
+              </div>
+              <div class="pt-2 border-t border-slate-100">
+                <div class="font-semibold text-slate-800 mb-1">Lista de Adyacencias Activa (Orden Alfabético):</div>
+                <div id="search-adj-list-view" class="grid grid-cols-2 gap-x-3 gap-y-1 mono text-[11px] bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                  <!-- Generado por JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // CONTROL DE PESTAÑAS PRINCIPALES
+    // =========================================================================
+    let currentMainTab = 'sorting';
+
+    function switchMainTab(tab) {
+      stopAllAutoTimers();
+      currentMainTab = tab;
+      const tabs = ['sorting', 'greedy', 'search'];
+      tabs.forEach(t => {
+        const sec = document.getElementById(`section-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tab) {
+          sec.classList.remove('hidden');
+          btn.className = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-amber-500 text-slate-950 shadow';
+        } else {
+          sec.classList.add('hidden');
+          btn.className = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-300 hover:text-white';
+        }
+      });
+    }
+
+    function stopAllAutoTimers() {
+      if (sortAutoTimer) { clearInterval(sortAutoTimer); sortAutoTimer = null; updateSortAutoBtn(); }
+      if (greedyAutoTimer) { clearInterval(greedyAutoTimer); greedyAutoTimer = null; updateGreedyAutoBtn(); }
+      if (searchAutoTimer) { clearInterval(searchAutoTimer); searchAutoTimer = null; updateSearchAutoBtn(); }
+    }
+
+    // =========================================================================
+    // 1.1 ALGORITMOS DE ORDENACIÓN (BURBUJA VS. INSERCIÓN)
+    // =========================================================================
+    let sortAlgo = 'bubble'; // 'bubble' | 'insertion'
+    let sortInitialArray = [5, 2, 8, 1, 4, 3];
+    let sortSteps = [];
+    let sortCurrentStep = 0;
+    let sortAutoTimer = null;
+
+    function buildBubbleSteps(arrInput) {
+      const a = [...arrInput];
+      const n = a.length;
+      const steps = [];
+      let comps = 0;
+      let swaps = 0;
+      const passLogs = [`Orden inicial: [${a.join(', ')}]`];
+
+      steps.push({
+        arr: [...a],
+        comparing: [],
+        swapped: [],
+        fixedIndices: [],
+        comps,
+        swaps,
+        badge: 'Estado Inicial',
+        sublistText: `Tamaño n = ${n}`,
+        explanation: `Lista de partida con n = ${n} elementos. El algoritmo de la Burbuja realizará n - 1 = ${n - 1} pasadas comparando elementos adyacentes.`,
+        logs: [...passLogs]
+      });
+
+      const fixed = [];
+      for (let pass = 1; pass <= n - 1; pass++) {
+        for (let i = 0; i <= n - 1 - pass; i++) {
+          comps++;
+          const left = a[i];
+          const right = a[i + 1];
+          const needSwap = left > right;
+
+          steps.push({
+            arr: [...a],
+            comparing: [i, i + 1],
+            swapped: [],
+            fixedIndices: [...fixed],
+            comps,
+            swaps,
+            badge: `Pasada ${pass} · Comparación #${comps}`,
+            sublistText: `Comparando pos ${i + 1} y ${i + 2}`,
+            explanation: `Comparamos x_${i + 1} = ${left} con x_${i + 2} = ${right}. ${needSwap ? `Como ${left} > ${right}, están desordenados y debemos intercambiarlos.` : `Como ${left} < ${right}, ya están en orden correcto y no se intercambian.`}`,
+            logs: [...passLogs]
+          });
+
+          if (needSwap) {
+            a[i] = right;
+            a[i + 1] = left;
+            swaps++;
+            passLogs.push(`Tras ${comps}ª comp. (intercambio ${left}↔${right}): [${a.join(', ')}]`);
+            steps.push({
+              arr: [...a],
+              comparing: [],
+              swapped: [i, i + 1],
+              fixedIndices: [...fixed],
+              comps,
+              swaps,
+              badge: `Pasada ${pass} · Intercambio`,
+              sublistText: `Intercambiados ${left} y ${right}`,
+              explanation: `Se intercambian ${left} y ${right}. El mayor (${left}) avanza una posición hacia la derecha ("burbujea").`,
+              logs: [...passLogs]
+            });
+          } else {
+            passLogs.push(`Tras ${comps}ª comp. (sin cambio): [${a.join(', ')}]`);
+          }
+        }
+        fixed.push(n - pass);
+        if (pass === n - 1) fixed.push(0);
+        passLogs.push(`✓ Fin de la ${pass}ª pasada: [${a.join(', ')}] (fijado el ${a[n - pass]} al final)`);
+
+        steps.push({
+          arr: [...a],
+          comparing: [],
+          swapped: [],
+          fixedIndices: [...fixed],
+          comps,
+          swaps,
+          badge: `Fin de la Pasada ${pass}`,
+          sublistText: `Últimos ${fixed.length} elementos ya fijados`,
+          explanation: `Al terminar la pasada ${pass}, el elemento ${a[n - pass]} queda definitivamente colocado en la posición ${n - pass + 1}.`,
+          logs: [...passLogs]
+        });
+      }
+
+      steps.push({
+        arr: [...a],
+        comparing: [],
+        swapped: [],
+        fixedIndices: a.map((_, idx) => idx),
+        comps,
+        swaps,
+        badge: '¡Lista Ordenada!',
+        sublistText: `Total: ${comps} comparaciones = n(n-1)/2`,
+        explanation: `Proceso finalizado. Se han realizado exactamente (n-1) + (n-2) + ... + 1 = ${comps} comparaciones. Complejidad en tiempo: O(n²).`,
+        logs: [...passLogs, `★ Orden final: [${a.join(', ')}]`]
+      });
+
+      return steps;
+    }
+
+    function buildInsertionSteps(arrInput) {
+      const a = [...arrInput];
+      const n = a.length;
+      const steps = [];
+      let comps = 0;
+      let swaps = 0;
+      const passLogs = [`Lista inicial: [${a.join(', ')}]`];
+
+      steps.push({
+        arr: [...a],
+        comparing: [],
+        swapped: [],
+        fixedIndices: [0],
+        comps,
+        swaps,
+        badge: 'Inicio · Sublista {x̃₁}',
+        sublistText: `Sublista ordenada izquierda: {${a[0]}}`,
+        explanation: `Partimos del primer elemento {${a[0]}} como sublista ordenada trivial de tamaño 1. En cada paso k insertaremos x_{k+1} en su posición correcta dentro de {x̃₁, ..., x̃_k}.`,
+        logs: [...passLogs]
+      });
+
+      for (let k = 1; k < n; k++) {
+        const key = a[k];
+        const sortedBefore = a.slice(0, k).join(', ');
+        steps.push({
+          arr: [...a],
+          comparing: [k],
+          swapped: [],
+          fixedIndices: Array.from({ length: k }, (_, idx) => idx),
+          comps,
+          swaps,
+          badge: `Paso ${k} · Seleccionar x_${k + 1} = ${key}`,
+          sublistText: `Insertar ${key} en {${sortedBefore}}`,
+          explanation: `Tomamos el elemento x_${k + 1} = ${key} para insertarlo en la sublista izquierda ya ordenada {${sortedBefore}}.`,
+          logs: [...passLogs]
+        });
+
+        let j = k - 1;
+        while (j >= 0) {
+          comps++;
+          const leftVal = a[j];
+          const moveLeft = leftVal > key;
+
+          steps.push({
+            arr: [...a],
+            comparing: [j, j + 1],
+            swapped: [],
+            fixedIndices: Array.from({ length: k + 1 }, (_, idx) => idx),
+            comps,
+            swaps,
+            badge: `Paso ${k} · Comparando con ${leftVal}`,
+            sublistText: `Comparación #${comps}`,
+            explanation: `Comparamos ${key} con ${leftVal} (de la sublista ordenada). ${moveLeft ? `Como ${key} < ${leftVal}, desplazamos ${leftVal} a la derecha para seguir buscando hueco.` : `Como ${key} ≥ ${leftVal}, hemos encontrado la posición correcta para ${key}.`}`,
+            logs: [...passLogs]
+          });
+
+          if (moveLeft) {
+            a[j + 1] = a[j];
+            a[j] = key;
+            swaps++;
+            j--;
+            steps.push({
+              arr: [...a],
+              comparing: [],
+              swapped: [j + 1, j + 2],
+              fixedIndices: Array.from({ length: k + 1 }, (_, idx) => idx),
+              comps,
+              swaps,
+              badge: `Paso ${k} · Desplazamiento`,
+              sublistText: `${key} avanza hacia su posición`,
+              explanation: `Se desplaza ${leftVal} una posición a la derecha.`,
+              logs: [...passLogs]
+            });
+          } else {
+            break;
+          }
+        }
+
+        const newSorted = a.slice(0, k + 1).join(', ');
+        passLogs.push(`Paso ${k} (insertar ${key}): [{${newSorted}}${k + 1 < n ? ', ' + a.slice(k + 1).join(', ') : ''}]`);
+
+        steps.push({
+          arr: [...a],
+          comparing: [],
+          swapped: [],
+          fixedIndices: Array.from({ length: k + 1 }, (_, idx) => idx),
+          comps,
+          swaps,
+          badge: `Fin del Paso ${k}`,
+          sublistText: `Sublista ordenada: {${newSorted}}`,
+          explanation: `Tras el paso ${k}, los primeros ${k + 1} elementos forman la sublista ordenada {${newSorted}}.`,
+          logs: [...passLogs]
+        });
+      }
+
+      steps.push({
+        arr: [...a],
+        comparing: [],
+        swapped: [],
+        fixedIndices: a.map((_, idx) => idx),
+        comps,
+        swaps,
+        badge: '¡Lista Ordenada por Inserción!',
+        sublistText: `Comparaciones realizadas: ${comps} (Peor caso: ${n * (n - 1) / 2})`,
+        explanation: `Ordenación por Inserción completada. En el peor caso (lista inversamente ordenada), el paso k requiere k comparaciones: 1 + 2 + ... + (n-1) = n(n-1)/2 = O(n²).`,
+        logs: [...passLogs, `★ Orden final: [${a.join(', ')}]`]
+      });
+
+      return steps;
+    }
+
+    function updateSortExamNotes() {
+      const container = document.getElementById('sort-exam-notes');
+      if (sortAlgo === 'bubble') {
+        container.innerHTML = `
+          <p><strong class="text-slate-900">1. Mecánica en cada pasada:</strong> En la pasada $k$, se comparan pares consecutivos $(x_1, x_2), (x_2, x_3), \dots, (x_{n-k}, x_{n-k+1})$ intercambiándolos si $x_i > x_{i+1}$.</p>
+          <p><strong class="text-slate-900">2. Invariante clave:</strong> Al final de la pasada $k$, los $k$ mayores elementos ya están colocados definitivamente al final de la lista (posiciones $n-k+1$ hasta $n$).</p>
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl mono text-xs text-amber-950">
+            <strong>Complejidad (Peor Caso):</strong><br/>
+            Nº de comparaciones = $(n-1) + (n-2) + \dots + 2 + 1 = \\binom{n}{2} = \\frac{n(n-1)}{2} \\implies \\mathbf{O(n^2)}$.
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <p><strong class="text-slate-900">1. Mecánica incremental:</strong> En el paso $k$, los primeros $k$ elementos ya forman una sublista ordenada $\\{\\tilde{x}_1, \\dots, \\tilde{x}_k\\}$. Se toma $x_{k+1}$ y se compara secuencialmente para insertarlo en su lugar.</p>
+          <p><strong class="text-slate-900">2. Diferencia frente a Burbuja:</strong> Burbuja fija elementos de derecha a izquierda (los máximos al final); Inserción mantiene ordenada la sublista izquierda de los primeros $k+1$ elementos.</p>
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl mono text-xs text-amber-950">
+            <strong>Complejidad (Peor Caso):</strong><br/>
+            En el paso $k$ hace a lo sumo $k$ comparaciones:<br/>
+            $T(n) = 1 + 2 + \\dots + (n-1) = \\frac{n(n-1)}{2} \\implies \\mathbf{O(n^2)}$.
+          </div>
+        `;
+      }
+    }
+
+    function initSortSimulation() {
+      stopAllAutoTimers();
+      sortSteps = sortAlgo === 'bubble'
+        ? buildBubbleSteps(sortInitialArray)
+        : buildInsertionSteps(sortInitialArray);
+      sortCurrentStep = 0;
+      updateSortExamNotes();
+      renderSortStep();
+    }
+
+    function renderSortStep() {
+      const step = sortSteps[sortCurrentStep];
+      const maxVal = Math.max(... step.arr.map(v => Math.abs(v)), 1);
+
+      document.getElementById('sort-title').textContent =
+        sortAlgo === 'bubble' ? 'Algoritmo de Ordenación de Burbuja' : 'Algoritmo de Ordenación por Inserción';
+      document.getElementById('sort-subtitle').textContent =
+        sortAlgo === 'bubble'
+          ? 'Compara pares adyacentes e intercambia si x_i > x_{i+1}, fijando el mayor al final de cada pasada.'
+          : 'Toma x_{k+1} y lo inserta en la posición correcta dentro de la sublista izquierda ya ordenada {x̃₁, ..., x̃_k}.';
+
+      document.getElementById('sort-step-counter').textContent = `${sortCurrentStep}/${sortSteps.length - 1}`;
+      document.getElementById('sort-comp-counter').textContent = step.comps;
+      document.getElementById('sort-swap-counter').textContent = step.swaps;
+      document.getElementById('sort-step-badge').textContent = step.badge;
+      document.getElementById('sort-sublist-indicator').textContent = step.sublistText;
+      document.getElementById('sort-step-explanation').textContent = step.explanation;
+
+      const barsContainer = document.getElementById('sort-bars-container');
+      barsContainer.innerHTML = '';
+
+      step.arr.forEach((val, idx) => {
+        const isComparing = step.comparing.includes(idx);
+        const isSwapped = step.swapped.includes(idx);
+        const isFixed = step.fixedIndices.includes(idx);
+
+        let barColor = 'bg-slate-300 text-slate-800 border-slate-400';
+        let badgeLabel = `pos ${idx + 1}`;
+
+        if (isSwapped) {
+          barColor = 'bg-rose-500 text-white border-rose-600 shadow-lg scale-105';
+          badgeLabel = '↔ cambio';
+        } else if (isComparing) {
+          barColor = 'bg-amber-400 text-slate-950 border-amber-500 shadow-md scale-105';
+          badgeLabel = 'comparando';
+        } else if (isFixed) {
+          barColor = 'bg-emerald-500 text-white border-emerald-600';
+          badgeLabel = sortAlgo === 'bubble' ? 'fijado' : `x̃_${idx + 1}`;
+        }
+
+        const heightPct = Math.max(22, Math.round((Math.abs(val) / maxVal) * 82));
+
+        const col = document.createElement('div');
+        col.className = 'flex flex-col items-center justify-end h-full flex-1 max-w-[74px]';
+        col.innerHTML = `
+          <div class="bar-transition w-full rounded-t-xl border-2 flex flex-col items-center justify-between py-2 ${barColor}" style="height: ${heightPct}%;">
+            <span class="mono font-extrabold text-base sm:text-lg">${val}</span>
+          </div>
+          <div class="mt-2 text-[11px] mono font-semibold text-slate-500 text-center truncate w-full">${badgeLabel}</div>
+        `;
+        barsContainer.appendChild(col);
+      });
+
+      // Logs
+      const logContainer = document.getElementById('sort-trace-log');
+      logContainer.innerHTML = step.logs.map((line, i) => `
+        <div class="px-2.5 py-1.5 rounded-lg ${i === step.logs.length - 1 ? 'bg-indigo-50 text-indigo-900 font-semibold border border-indigo-200' : 'bg-slate-50 text-slate-600'}">
+          ${line}
+        </div>
+      `).join('');
+      logContainer.scrollTop = logContainer.scrollHeight;
+
+      document.getElementById('sort-btn-prev').disabled = sortCurrentStep === 0;
+      document.getElementById('sort-btn-next').disabled = sortCurrentStep === sortSteps.length - 1;
+    }
+
+    function setSortAlgo(algo) {
+      sortAlgo = algo;
+      document.getElementById('btn-algo-bubble').className = algo === 'bubble'
+        ? 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm'
+        : 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200';
+      document.getElementById('btn-algo-insertion').className = algo === 'insertion'
+        ? 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm'
+        : 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200';
+      initSortSimulation();
+    }
+
+    function applyCustomSortList() {
+      const raw = document.getElementById('sort-input').value;
+      const parsed = raw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+      if (parsed.length >= 2 && parsed.length <= 10) {
+        sortInitialArray = parsed;
+        initSortSimulation();
+      }
+    }
+
+    function setPresetSortList(str) {
+      document.getElementById('sort-input').value = str;
+      applyCustomSortList();
+    }
+
+    function sortNext() {
+      if (sortCurrentStep < sortSteps.length - 1) {
+        sortCurrentStep++;
+        renderSortStep();
+      } else if (sortAutoTimer) {
+        sortToggleAuto();
+      }
+    }
+
+    function sortPrev() {
+      if (sortCurrentStep > 0) {
+        sortCurrentStep--;
+        renderSortStep();
+      }
+    }
+
+    function sortReset() {
+      stopAllAutoTimers();
+      sortCurrentStep = 0;
+      renderSortStep();
+    }
+
+    function sortToggleAuto() {
+      if (sortAutoTimer) {
+        clearInterval(sortAutoTimer);
+        sortAutoTimer = null;
+      } else {
+        if (sortCurrentStep === sortSteps.length - 1) sortCurrentStep = 0;
+        sortAutoTimer = setInterval(() => {
+          if (sortCurrentStep < sortSteps.length - 1) {
+            sortCurrentStep++;
+            renderSortStep();
+          } else {
+            clearInterval(sortAutoTimer);
+            sortAutoTimer = null;
+            updateSortAutoBtn();
+          }
+        }, 950);
+      }
+      updateSortAutoBtn();
+    }
+
+    function updateSortAutoBtn() {
+      const btn = document.getElementById('sort-btn-auto');
+      if (sortAutoTimer) {
+        btn.innerHTML = '⏸ Pausar';
+        btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500 text-slate-950 shadow-sm transition flex items-center gap-1.5';
+      } else {
+        btn.innerHTML = '▶ Reproducir automático';
+        btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition flex items-center gap-1.5';
+      }
+    }
+
+    // =========================================================================
+    // 1.2 ALGORITMOS VORACES (COLORACIÓN C1-C6 Y A.S.M. PRIM / KRUSKAL)
+    // =========================================================================
+    let greedyMode = 'coloring'; // 'coloring' | 'mst'
+    let mstAlgo = 'kruskal';     // 'kruskal' | 'prim'
+    let primRoot = 'a';
+    let greedySteps = [];
+    let greedyCurrentStep = 0;
+    let greedyAutoTimer = null;
+
+    // Grafo de las 6 Conferencias C1..C6 de las diapositivas de clase
+    // Resultado en diapositiva:
+    // Sesión 1: C1 y C3 | Sesión 2: C2 y C4 | Sesión 3: C5 | Sesión 4: C6
+    const coloringNodes = [
+      { id: 'C1', x: 225, y: 65 },
+      { id: 'C2', x: 375, y: 65 },
+      { id: 'C3', x: 130, y: 185 },
+      { id: 'C4', x: 470, y: 185 },
+      { id: 'C5', x: 375, y: 305 },
+      { id: 'C6', x: 225, y: 305 }
+    ];
+    // Aristas de incompatibilidad entre conferencias que producen la partición exacta de clase
+    const coloringEdges = [
+      ['C1', 'C2'], ['C1', 'C4'], ['C1', 'C5'], ['C1', 'C6'],
+      ['C2', 'C3'], ['C2', 'C6'],
+      ['C3', 'C4'], ['C3', 'C5'],
+      ['C4', 'C5'], ['C4', 'C6'],
+      ['C5', 'C6']
+    ];
+
+    const sessionPalette = [
+      { session: 1, name: 'Sesión 1', fill: '#3b82f6', text: '#ffffff', badgeBg: 'bg-blue-100 text-blue-900 border-blue-300' },
+      { session: 2, name: 'Sesión 2', fill: '#10b981', text: '#ffffff', badgeBg: 'bg-emerald-100 text-emerald-900 border-emerald-300' },
+      { session: 3, name: 'Sesión 3', fill: '#f59e0b', text: '#0f172a', badgeBg: 'bg-amber-100 text-amber-900 border-amber-300' },
+      { session: 4, name: 'Sesión 4', fill: '#ec4899', text: '#ffffff', badgeBg: 'bg-pink-100 text-pink-900 border-pink-300' }
+    ];
+
+    function buildColoringSteps() {
+      const steps = [];
+      const assigned = {}; // nodeId -> sessionNumber (1..4)
+
+      steps.push({
+        assigned: { ...assigned },
+        activeNode: null,
+        conflictEdges: [],
+        badge: 'Planteamiento del Problema (6 Conferencias)',
+        status: 'Candidatos C = {C1, C2, C3, C4, C5, C6}',
+        explanation: 'Queremos organizar 6 conferencias (C1 a C6) en el mínimo número de sesiones posibles. Dos conferencias unidas por una arista tienen público común y NO pueden coincidir en la misma sesión.'
+      });
+
+      const adj = {};
+      coloringNodes.forEach(n => adj[n.id] = []);
+      coloringEdges.forEach(([u, v]) => {
+        adj[u].push(v);
+        adj[v].push(u);
+      });
+
+      coloringNodes.forEach((node, idx) => {
+        const u = node.id;
+        const coloredNeighbors = adj[u].filter(v => assigned[v] !== undefined);
+        const usedSessions = new Set(coloredNeighbors.map(v => assigned[v]));
+
+        let chosenSession = 1;
+        while (usedSessions.has(chosenSession)) chosenSession++;
+
+        const conflictList = coloredNeighbors.map(v => [u, v]);
+        const conflictDesc = coloredNeighbors.length === 0
+          ? 'No tiene ningún vecino coloreado todavía.'
+          : `Es adyacente a ${coloredNeighbors.map(v => `${v} (Sesión ${assigned[v]})`).join(', ')}.`;
+
+        assigned[u] = chosenSession;
+
+        steps.push({
+          assigned: { ...assigned },
+          activeNode: u,
+          conflictEdges: conflictList,
+          badge: `Paso ${idx + 1} · Colorear ${u}`,
+          status: `${u} → Asignada a Sesión ${chosenSession}`,
+          explanation: `Inspeccionamos ${u}: ${conflictDesc} Siguiendo la estrategia voraz, le asignamos el primer color/sesión disponible sin conflicto: Sesión ${chosenSession}.`
+        });
+      });
+
+      steps.push({
+        assigned: { ...assigned },
+        activeNode: null,
+        conflictEdges: [],
+        badge: '¡Coloración Voraz Completada!',
+        status: '4 Sesiones obtenidas',
+        explanation: 'Resultado final idéntico a la presentación de clase: Sesión 1 = {C1, C3}, Sesión 2 = {C2, C4}, Sesión 3 = {C5} y Sesión 4 = {C6}.'
+      });
+
+      return steps;
+    }
+
+    // Grafo de clase para Árbol Spanning Minimal (Prim vs Kruskal)
+    // Vértices {a, b, c, d, e, f} y aristas con pesos exactos:
+    // (a,b)=4, (a,d)=2, (a,f)=3, (b,c)=5, (d,c)=1, (d,e)=1, (d,f)=6, (c,e)=6, (f,e)=3
+    const mstNodes = [
+      { id: 'a', x: 260, y: 55 },
+      { id: 'b', x: 500, y: 55 },
+      { id: 'c', x: 500, y: 215 },
+      { id: 'd', x: 260, y: 215 },
+      { id: 'e', x: 410, y: 325 },
+      { id: 'f', x: 95,  y: 325 }
+    ];
+
+    const mstEdges = [
+      { id: 'dc', u: 'd', v: 'c', w: 1, label: '(d,c)=1' },
+      { id: 'de', u: 'd', v: 'e', w: 1, label: '(d,e)=1' },
+      { id: 'ad', u: 'a', v: 'd', w: 2, label: '(a,d)=2' },
+      { id: 'af', u: 'a', v: 'f', w: 3, label: '(a,f)=3' },
+      { id: 'fe', u: 'f', v: 'e', w: 3, label: '(f,e)=3' },
+      { id: 'ab', u: 'a', v: 'b', w: 4, label: '(a,b)=4' },
+      { id: 'bc', u: 'b', v: 'c', w: 5, label: '(b,c)=5' },
+      { id: 'df', u: 'd', v: 'f', w: 6, label: '(d,f)=6' },
+      { id: 'ce', u: 'c', v: 'e', w: 6, label: '(c,e)=6' }
+    ];
+
+    function buildKruskalSteps() {
+      const steps = [];
+      const sortedEdges = [...mstEdges].sort((a, b) => a.w - b.w);
+      const selected = [];
+      const discarded = [];
+      let totalW = 0;
+
+      // Union-Find para detección de ciclos
+      const parent = {};
+      mstNodes.forEach(n => parent[n.id] = n.id);
+      const find = x => parent[x] === x ? x : (parent[x] = find(parent[x]));
+
+      steps.push({
+        selected: [],
+        discarded: [],
+        activeEdge: null,
+        visitedNodes: [],
+        candidates: sortedEdges.map(e => e.label),
+        totalW: 0,
+        badge: 'Inicialización de Kruskal',
+        status: 'S = ∅ · 9 aristas ordenadas por peso creciente',
+        explanation: 'Ordenamos todas las aristas del grafo de menor a mayor peso: (d,c)=1, (d,e)=1, (a,d)=2, (a,f)=3, (f,e)=3, (a,b)=4, (b,c)=5, (d,f)=6, (c,e)=6. En cada paso elegimos la de menor peso que NO forme ciclo con S.'
+      });
+
+      for (let i = 0; i < sortedEdges.length; i++) {
+        const edge = sortedEdges[i];
+        const remaining = sortedEdges.slice(i + 1).map(e => e.label);
+        const ru = find(edge.u);
+        const rv = find(edge.v);
+
+        if (ru !== rv) {
+          parent[ru] = rv;
+          selected.push(edge.id);
+          totalW += edge.w;
+          const nodesInS = Array.from(new Set(
+            mstEdges.filter(e => selected.includes(e.id)).flatMap(e => [e.u, e.v])
+          ));
+
+          steps.push({
+            selected: [...selected],
+            discarded: [...discarded],
+            activeEdge: edge.id,
+            visitedNodes: nodesInS,
+            candidates: remaining,
+            totalW,
+            badge: `Evaluar ${edge.label} → ACEPTADA`,
+            status: `|S| = ${selected.length}/5 aristas · w(T) = ${totalW}`,
+            explanation: `Tomamos la arista candidata de menor peso ${edge.label}. Como los vértices '${edge.u}' y '${edge.v}' están en componentes conexas distintas de S, NO forma ciclo: la añadimos a S.`
+          });
+
+          if (selected.length === mstNodes.length - 1) {
+            steps.push({
+              selected: [...selected],
+              discarded: [...discarded],
+              activeEdge: null,
+              visitedNodes: mstNodes.map(n => n.id),
+              candidates: remaining,
+              totalW,
+              badge: '¡Árbol Spanning Minimal (Kruskal) Completado!',
+              status: `5 aristas en S · Peso Mínimo Total w(T) = ${totalW}`,
+              explanation: `Ya hemos seleccionado n - 1 = 5 aristas que conectan los 6 vértices sin ciclos. El Árbol Spanning Minimal tiene peso total w(T) = 1 + 1 + 2 + 3 + 4 = ${totalW}.`
+            });
+            break;
+          }
+        } else {
+          discarded.push(edge.id);
+          const nodesInS = Array.from(new Set(
+            mstEdges.filter(e => selected.includes(e.id)).flatMap(e => [e.u, e.v])
+          ));
+          steps.push({
+            selected: [...selected],
+            discarded: [...discarded],
+            activeEdge: edge.id,
+            visitedNodes: nodesInS,
+            candidates: remaining,
+            totalW,
+            badge: `Evaluar ${edge.label} → DESCARTADA (Ciclo)`,
+            status: `Forma ciclo con S · Se descarta`,
+            explanation: `Evaluamos ${edge.label}: los vértices '${edge.u}' y '${edge.v}' ya están conectados en S (cerraría el ciclo f–a–d–e–f). La descartamos y pasamos a la siguiente candidata.`
+          });
+        }
+      }
+
+      return steps;
+    }
+
+    function buildPrimSteps(startNode) {
+      const steps = [];
+      const visited = new Set([startNode]);
+      const selected = [];
+      const discarded = [];
+      let totalW = 0;
+
+      steps.push({
+        selected: [],
+        discarded: [],
+        activeEdge: null,
+        visitedNodes: [startNode],
+        candidates: mstEdges.filter(e => e.u === startNode || e.v === startNode).map(e => e.label),
+        totalW: 0,
+        badge: `Inicio de Prim en vértice '${startNode}'`,
+        status: `V(T) = {${startNode}} · S = ∅`,
+        explanation: `El algoritmo de Prim parte del vértice inicial '${startNode}' y hace crecer un único árbol conexo T. En cada paso escoge la arista de menor peso que tenga un extremo dentro de V(T) y otro fuera.`
+      });
+
+      while (visited.size < mstNodes.length) {
+        // Aristas frontera (un extremo en visited y otro fuera)
+        const frontier = [];
+        mstEdges.forEach(e => {
+          const uIn = visited.has(e.u);
+          const vIn = visited.has(e.v);
+          if ((uIn && !vIn) || (!uIn && vIn)) {
+            frontier.push(e);
+          } else if (uIn && vIn && !selected.includes(e.id) && !discarded.includes(e.id)) {
+            discarded.push(e.id);
+          }
+        });
+
+        frontier.sort((a, b) => a.w - b.w);
+        const chosen = frontier[0];
+        const newVertex = visited.has(chosen.u) ? chosen.v : chosen.u;
+
+        selected.push(chosen.id);
+        visited.add(newVertex);
+        totalW += chosen.w;
+
+        // Marcar posibles aristas internas que ahora forman ciclo con V(T)
+        mstEdges.forEach(e => {
+          if (visited.has(e.u) && visited.has(e.v) && !selected.includes(e.id) && !discarded.includes(e.id)) {
+            discarded.push(e.id);
+          }
+        });
+
+        steps.push({
+          selected: [...selected],
+          discarded: [...discarded],
+          activeEdge: chosen.id,
+          visitedNodes: Array.from(visited),
+          candidates: frontier.map(e => e.label),
+          totalW,
+          badge: `Paso ${selected.length} · Añadir ${chosen.label} (conecta '${newVertex}')`,
+          status: `V(T) = {${Array.from(visited).join(', ')}} · w(T) = ${totalW}`,
+          explanation: `Entre las aristas incidentes a V(T) que salen hacia vértices no visitados (${frontier.map(e => e.label).join(', ')}), la de menor peso es ${chosen.label}. Incorporamos el vértice '${newVertex}' al árbol.`
+        });
+      }
+
+      steps.push({
+        selected: [...selected],
+        discarded: [...discarded],
+        activeEdge: null,
+        visitedNodes: Array.from(visited),
+        candidates: [],
+        totalW,
+        badge: '¡Árbol Spanning Minimal (Prim) Completado!',
+        status: `Todos los vértices conectados · Peso Total w(T) = ${totalW}`,
+        explanation: `Prim ha conectado los 6 vértices manteniendo en todo momento un único árbol conexo, alcanzando el mismo peso mínimo w(T) = ${totalW}.`
+      });
+
+      return steps;
+    }
+
+    function initGreedySimulation() {
+      stopAllAutoTimers();
+      if (greedyMode === 'coloring') {
+        greedySteps = buildColoringSteps();
+      } else {
+        greedySteps = mstAlgo === 'kruskal' ? buildKruskalSteps() : buildPrimSteps(primRoot);
+      }
+      greedyCurrentStep = 0;
+      updateGreedyExamNotes();
+      renderGreedyStep();
+    }
+
+    function updateGreedyExamNotes() {
+      const notes = document.getElementById('greedy-exam-notes');
+      if (greedyMode === 'coloring') {
+        notes.innerHTML = `
+          <p><strong class="text-slate-900">Definición (Coloración de vértices):</strong> Dada $G=(V,A)$, es una aplicación $c: V \\to \\mathbb{N}$ tal que $xy \\in A \\implies c(x) \\neq c(y)$. Induce una partición $V = \\bigsqcup_{i=1}^n V_i$ de conjuntos independientes.</p>
+          <p><strong class="text-slate-900">Heurística Voraz:</strong> Recorre los vértices en un orden fijado y asigna a cada vértice el menor color (sesión) que no esté usado por ninguno de sus vecinos ya coloreados.</p>
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-950">
+            <strong>¡Ojo para el Examen!</strong> El algoritmo voraz de coloración es rápido pero <strong>no siempre garantiza el número cromático mínimo absoluto</strong>; depende del orden en que se recorran los vértices.
+          </div>
+        `;
+      } else {
+        notes.innerHTML = `
+          <p><strong class="text-slate-900">Árbol Spanning Minimal (A.S.M.):</strong> Subgrafo conexo sin ciclos $T \\subset G$ que contiene a todos los vértices ($V(T)=V(G)$, por tanto tiene $|V|-1$ aristas) y minimiza $w(T) = \\sum_{e \\in T} w(e)$.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs">
+              <strong class="text-amber-950">Kruskal:</strong> Elige en cada paso la arista de menor peso global que <strong>no forme ciclo</strong> (puede ir creando varios árboles disjuntos que acaban uniéndose).
+            </div>
+            <div class="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-xs">
+              <strong class="text-indigo-950">Prim:</strong> Crece siempre <strong>un único árbol conexo</strong> desde un vértice raíz, eligiendo la arista frontera de menor peso sin formar ciclos.
+            </div>
+          </div>
+          <p class="text-xs text-emerald-700 font-semibold pt-1">✓ Ambos algoritmos voraces SÍ garantizan encontrar siempre el óptimo global para el A.S.M.</p>
+        `;
+      }
+    }
+
+    function renderGreedyStep() {
+      const step = greedySteps[greedyCurrentStep];
+      const svg = document.getElementById('greedy-svg');
+      svg.innerHTML = '';
+
+      document.getElementById('greedy-step-counter').textContent = `${greedyCurrentStep}/${greedySteps.length - 1}`;
+      document.getElementById('greedy-step-badge').textContent = step.badge;
+      document.getElementById('greedy-status-pill').textContent = step.status;
+      document.getElementById('greedy-step-explanation').textContent = step.explanation;
+
+      if (greedyMode === 'coloring') {
+        document.getElementById('greedy-title').textContent = 'Coloración Voraz de Vértices (Ejemplo 6 Conferencias C1–C6)';
+        document.getElementById('greedy-subtitle').textContent = 'Asigna secuencialmente la primera sesión libre a cada conferencia evitando solapamientos entre adyacentes.';
+        document.getElementById('greedy-weight-badge').classList.add('hidden');
+        document.getElementById('greedy-state-title').textContent = 'Partición de Vértices por Sesiones (Colores)';
+
+        // Dibujar aristas
+        coloringEdges.forEach(([u, v]) => {
+          const nu = coloringNodes.find(n => n.id === u);
+          const nv = coloringNodes.find(n => n.id === v);
+          const isConflictCheck = step.conflictEdges.some(
+            ([a, b]) => (a === u && b === v) || (a === v && b === u)
+          );
+
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', nu.x);
+          line.setAttribute('y1', nu.y);
+          line.setAttribute('x2', nv.x);
+          line.setAttribute('y2', nv.y);
+          line.setAttribute('stroke', isConflictCheck ? '#f43f5e' : '#cbd5e1');
+          line.setAttribute('stroke-width', isConflictCheck ? '3.5' : '2');
+          if (isConflictCheck) line.setAttribute('stroke-dasharray', '6,4');
+          svg.appendChild(line);
+        });
+
+        // Dibujar nodos C1..C6
+        coloringNodes.forEach(node => {
+          const sessNum = step.assigned[node.id];
+          const pal = sessNum ? sessionPalette[sessNum - 1] : null;
+          const isActive = step.activeNode === node.id;
+
+          const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+          if (isActive) {
+            const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            halo.setAttribute('cx', node.x);
+            halo.setAttribute('cy', node.y);
+            halo.setAttribute('r', '34');
+            halo.setAttribute('fill', 'none');
+            halo.setAttribute('stroke', '#6366f1');
+            halo.setAttribute('stroke-width', '3');
+            g.appendChild(halo);
+          }
+
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', node.x);
+          circle.setAttribute('cy', node.y);
+          circle.setAttribute('r', '26');
+          circle.setAttribute('fill', pal ? pal.fill : '#f1f5f9');
+          circle.setAttribute('stroke', pal ? '#0f172a' : '#94a3b8');
+          circle.setAttribute('stroke-width', isActive ? '3' : '2');
+          g.appendChild(circle);
+
+          const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          label.setAttribute('x', node.x);
+          label.setAttribute('y', node.y + 5);
+          label.setAttribute('text-anchor', 'middle');
+          label.setAttribute('fill', pal ? pal.text : '#334155');
+          label.setAttribute('font-weight', '700');
+          label.setAttribute('font-size', '15');
+          label.textContent = node.id;
+          g.appendChild(label);
+
+          if (pal) {
+            const tag = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            tag.setAttribute('x', node.x);
+            tag.setAttribute('y', node.y + 42);
+            tag.setAttribute('text-anchor', 'middle');
+            tag.setAttribute('fill', '#0f172a');
+            tag.setAttribute('font-weight', '700');
+            tag.setAttribute('font-size', '11');
+            tag.textContent = pal.name;
+            g.appendChild(tag);
+          }
+
+          svg.appendChild(g);
+        });
+
+        // Actualizar panel lateral de sesiones
+        const stateDiv = document.getElementById('greedy-state-content');
+        stateDiv.innerHTML = sessionPalette.map(pal => {
+          const members = Object.keys(step.assigned).filter(k => step.assigned[k] === pal.session);
+          return `
+            <div class="flex items-center justify-between p-2.5 rounded-xl border ${pal.badgeBg}">
+              <span class="font-bold">${pal.name} (Color ${pal.session})</span>
+              <span class="mono font-bold text-sm">${members.length ? members.join(' y ') : '—'}</span>
+            </div>
+          `;
+        }).join('');
+
+      } else {
+        // MODO A.S.M. (KRUSKAL / PRIM)
+        document.getElementById('greedy-title').textContent =
+          mstAlgo === 'kruskal'
+            ? 'Árbol Spanning Minimal — Algoritmo de Kruskal'
+            : `Árbol Spanning Minimal — Algoritmo de Prim (Raíz: ${primRoot})`;
+        document.getElementById('greedy-subtitle').textContent =
+          mstAlgo === 'kruskal'
+            ? 'Ordena las aristas por peso menor y las añade a S siempre que no cierren un ciclo.'
+            : 'Hace crecer un único árbol desde el vértice inicial eligiendo la arista incidente de menor peso.';
+        document.getElementById('greedy-weight-badge').classList.remove('hidden');
+        document.getElementById('greedy-total-weight').textContent = step.totalW;
+        document.getElementById('greedy-state-title').textContent = 'Conjuntos del Esquema Voraz en Tiempo Real';
+
+        // Dibujar aristas con pesos
+        mstEdges.forEach(edge => {
+          const nu = mstNodes.find(n => n.id === edge.u);
+          const nv = mstNodes.find(n => n.id === edge.v);
+          const isSelected = step.selected.includes(edge.id);
+          const isDiscarded = step.discarded.includes(edge.id);
+          const isActive = step.activeEdge === edge.id;
+
+          let stroke = '#cbd5e1';
+          let width = '2.5';
+          let dash = '';
+
+          if (isActive && isDiscarded) {
+            stroke = '#f43f5e';
+            width = '4.5';
+            dash = '6,4';
+          } else if (isActive && isSelected) {
+            stroke = '#f59e0b';
+            width = '5';
+          } else if (isSelected) {
+            stroke = '#10b981';
+            width = '4.5';
+          } else if (isDiscarded) {
+            stroke = '#fda4af';
+            width = '2';
+            dash = '5,5';
+          }
+
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', nu.x);
+          line.setAttribute('y1', nu.y);
+          line.setAttribute('x2', nv.x);
+          line.setAttribute('y2', nv.y);
+          line.setAttribute('stroke', stroke);
+          line.setAttribute('stroke-width', width);
+          if (dash) line.setAttribute('stroke-dasharray', dash);
+          svg.appendChild(line);
+
+          // Etiqueta de peso en el punto medio
+          const mx = (nu.x + nv.x) / 2;
+          const my = (nu.y + nv.y) / 2;
+
+          const pill = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          pill.setAttribute('cx', mx);
+          pill.setAttribute('cy', my);
+          pill.setAttribute('r', '13');
+          pill.setAttribute('fill', isSelected ? '#ecfdf5' : isDiscarded ? '#fff1f2' : '#ffffff');
+          pill.setAttribute('stroke', stroke);
+          pill.setAttribute('stroke-width', '1.8');
+          svg.appendChild(pill);
+
+          const wText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          wText.setAttribute('x', mx);
+          wText.setAttribute('y', my + 4);
+          wText.setAttribute('text-anchor', 'middle');
+          wText.setAttribute('fill', isDiscarded ? '#e11d48' : '#0f172a');
+          wText.setAttribute('font-weight', '800');
+          wText.setAttribute('font-size', '12');
+          wText.textContent = edge.w;
+          svg.appendChild(wText);
+        });
+
+        // Dibujar vértices a..f
+        mstNodes.forEach(node => {
+          const inTree = step.visitedNodes.includes(node.id);
+          const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', node.x);
+          circle.setAttribute('cy', node.y);
+          circle.setAttribute('r', '22');
+          circle.setAttribute('fill', inTree ? '#0f172a' : '#ffffff');
+          circle.setAttribute('stroke', inTree ? '#10b981' : '#64748b');
+          circle.setAttribute('stroke-width', inTree ? '3.5' : '2.5');
+          g.appendChild(circle);
+
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', node.x);
+          text.setAttribute('y', node.y + 5);
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('fill', inTree ? '#ffffff' : '#0f172a');
+          text.setAttribute('font-weight', '800');
+          text.setAttribute('font-size', '15');
+          text.textContent = node.id;
+          g.appendChild(text);
+
+          svg.appendChild(g);
+        });
+
+        // Actualizar panel derecho con conjuntos C, S y Descartadas
+        const selLabels = mstEdges.filter(e => step.selected.includes(e.id)).map(e => e.label);
+        const discLabels = mstEdges.filter(e => step.discarded.includes(e.id)).map(e => e.label);
+
+        document.getElementById('greedy-state-content').innerHTML = `
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
+            <div class="font-bold text-emerald-950 flex justify-between">
+              <span>Conjunto Solución $S$ (Aristas en $T$):</span>
+              <span class="mono">${selLabels.length}/5</span>
+            </div>
+            <div class="mono text-emerald-800 font-semibold">${selLabels.length ? selLabels.join(', ') : '∅ (Vacío)'}</div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+            <div class="font-bold text-slate-700">Conjunto de Candidatos $C$ (Frontera / Cola):</div>
+            <div class="mono text-slate-600">${step.candidates.length ? step.candidates.join(', ') : '∅'}</div>
+          </div>
+          <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 space-y-1">
+            <div class="font-bold text-rose-900">Aristas Descartadas (Forman Ciclo):</div>
+            <div class="mono text-rose-700">${discLabels.length ? discLabels.join(', ') : 'Ninguna'}</div>
+          </div>
+        `;
+      }
+
+      document.getElementById('greedy-btn-prev').disabled = greedyCurrentStep === 0;
+      document.getElementById('greedy-btn-next').disabled = greedyCurrentStep === greedySteps.length - 1;
+    }
+
+    function setGreedyMode(mode) {
+      greedyMode = mode;
+      document.getElementById('btn-greedy-coloring').className = mode === 'coloring'
+        ? 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm'
+        : 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200';
+      document.getElementById('btn-greedy-mst').className = mode === 'mst'
+        ? 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm'
+        : 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200';
+
+      const sub = document.getElementById('mst-subcontrols');
+      if (mode === 'mst') sub.classList.remove('hidden');
+      else sub.classList.add('hidden');
+
+      initGreedySimulation();
+    }
+
+    function setMstAlgo(algo) {
+      mstAlgo = algo;
+      document.getElementById('btn-mst-kruskal').className = algo === 'kruskal'
+        ? 'px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 shadow-sm transition'
+        : 'px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+      document.getElementById('btn-mst-prim').className = algo === 'prim'
+        ? 'px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 shadow-sm transition'
+        : 'px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+
+      const wrap = document.getElementById('prim-root-selector-wrap');
+      if (algo === 'prim') wrap.classList.remove('hidden');
+      else wrap.classList.add('hidden');
+
+      initGreedySimulation();
+    }
+
+    function changePrimRoot(val) {
+      primRoot = val;
+      initGreedySimulation();
+    }
+
+    function greedyNext() {
+      if (greedyCurrentStep < greedySteps.length - 1) {
+        greedyCurrentStep++;
+        renderGreedyStep();
+      } else if (greedyAutoTimer) {
+        greedyToggleAuto();
+      }
+    }
+
+    function greedyPrev() {
+      if (greedyCurrentStep > 0) {
+        greedyCurrentStep--;
+        renderGreedyStep();
+      }
+    }
+
+    function greedyReset() {
+      stopAllAutoTimers();
+      greedyCurrentStep = 0;
+      renderGreedyStep();
+    }
+
+    function greedyToggleAuto() {
+      if (greedyAutoTimer) {
+        clearInterval(greedyAutoTimer);
+        greedyAutoTimer = null;
+      } else {
+        if (greedyCurrentStep === greedySteps.length - 1) greedyCurrentStep = 0;
+        greedyAutoTimer = setInterval(() => {
+          if (greedyCurrentStep < greedySteps.length - 1) {
+            greedyCurrentStep++;
+            renderGreedyStep();
+          } else {
+            clearInterval(greedyAutoTimer);
+            greedyAutoTimer = null;
+            updateGreedyAutoBtn();
+          }
+        }, 1100);
+      }
+      updateGreedyAutoBtn();
+    }
+
+    function updateGreedyAutoBtn() {
+      const btn = document.getElementById('greedy-btn-auto');
+      if (greedyAutoTimer) {
+        btn.innerHTML = '⏸ Pausar';
+        btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500 text-slate-950 shadow-sm transition';
+      } else {
+        btn.innerHTML = '▶ Reproducir automático';
+        btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition';
+      }
+    }
+
+    // =========================================================================
+    // 1.3 ALGORITMOS DE BÚSQUEDA EN GRAFOS (B.E.P. / DFS vs. B.E.A. / BFS)
+    // =========================================================================
+    let searchAlgo = 'dfs'; // 'dfs' | 'bfs'
+    let searchPreset = 'adj8'; // 'adj8' (Ejercicio a..h) | 'toys7' (Ejemplo juguetes a..g)
+    let searchRoot = 'g';
+    let searchSteps = [];
+    let searchCurrentStep = 0;
+    let searchAutoTimer = null;
+
+    const searchGraphs = {
+      adj8: {
+        name: 'Ejercicio de Clase: Lista de Adyacencias {a, b, c, d, e, f, g, h}',
+        defaultDfsRoot: 'g',
+        defaultBfsRoot: 'c',
+        nodes: [
+          { id: 'a', x: 75,  y: 70 },
+          { id: 'b', x: 195, y: 70 },
+          { id: 'e', x: 310, y: 55 },
+          { id: 'd', x: 135, y: 155 },
+          { id: 'c', x: 255, y: 155 },
+          { id: 'h', x: 75,  y: 235 },
+          { id: 'g', x: 195, y: 235 },
+          { id: 'f', x: 310, y: 235 }
+        ],
+        adj: {
+          a: ['b', 'd', 'h'],
+          b: ['a', 'c', 'd', 'e'],
+          c: ['b', 'd', 'g'],
+          d: ['a', 'b', 'c'],
+          e: ['b'],
+          f: ['g'],
+          g: ['c', 'f', 'h'],
+          h: ['a', 'g']
+        }
+      },
+      toys7: {
+        name: 'Ejemplo de Clase: Los 7 Juguetes en la Habitación {a, b, c, d, e, f, g}',
+        defaultDfsRoot: 'a',
+        defaultBfsRoot: 'a',
+        nodes: [
+          { id: 'a', x: 55,  y: 50 },
+          { id: 'd', x: 120, y: 250 },
+          { id: 'g', x: 135, y: 165 },
+          { id: 'b', x: 215, y: 140 },
+          { id: 'f', x: 290, y: 140 },
+          { id: 'e', x: 315, y: 55 },
+          { id: 'c', x: 315, y: 250 }
+        ],
+        adj: {
+          a: ['b', 'd'],
+          b: ['a', 'c', 'd', 'e', 'f', 'g'],
+          c: ['b', 'e'],
+          d: ['a', 'b'],
+          e: ['b', 'c', 'f'],
+          f: ['b', 'e'],
+          g: ['b']
+        }
+      }
+    };
+
+    function populateSearchRootOptions() {
+      const gData = searchGraphs[searchPreset];
+      const sel = document.getElementById('search-root-select');
+      sel.innerHTML = gData.nodes.map(n => `<option value="${n.id}">Raíz: ${n.id}</option>`).join('');
+      sel.value = searchRoot;
+
+      // Renderizar lista de adyacencias
+      const adjDiv = document.getElementById('search-adj-list-view');
+      adjDiv.innerHTML = Object.entries(gData.adj).map(([k, list]) => `
+        <div><strong class="text-indigo-700">${k}:</strong> ${list.join(', ')}</div>
+      `).join('');
+    }
+
+    function buildSearchSteps() {
+      const gData = searchGraphs[searchPreset];
+      const adj = gData.adj;
+      const steps = [];
+
+      const Q = [searchRoot];
+      const visited = [searchRoot];
+      const treeEdges = []; // [parent, child]
+      const traceRows = [{ step: 1, add: searchRoot, rem: '–', qStr: searchRoot }];
+
+      steps.push({
+        Q: [...Q],
+        visited: [...visited],
+        treeEdges: [...treeEdges],
+        activeX: searchRoot,
+        inspectEdge: null,
+        traceRows: [...traceRows],
+        badge: `Inicialización · Q := ${searchRoot}`,
+        explanation: `Comenzamos en el vértice raíz '${searchRoot}'. Lo marcamos como visitado y lo insertamos en la estructura Q.`
+      });
+
+      let stepIdx = 1;
+      while (Q.length > 0) {
+        stepIdx++;
+        const x = searchAlgo === 'dfs' ? Q[Q.length - 1] : Q[0];
+        const neighbors = adj[x] || [];
+        const nextY = neighbors.find(nb => !visited.includes(nb));
+
+        if (nextY) {
+          visited.push(nextY);
+          Q.push(nextY);
+          treeEdges.push([x, nextY]);
+          traceRows.push({
+            step: stepIdx,
+            add: nextY,
+            rem: '–',
+            qStr: Q.join('')
+          });
+
+          steps.push({
+            Q: [...Q],
+            visited: [...visited],
+            treeEdges: [...treeEdges],
+            activeX: x,
+            inspectEdge: [x, nextY],
+            traceRows: [...traceRows],
+            badge: `Añadir '${nextY}' desde x = '${x}'`,
+            explanation: `Tomamos x = ${searchAlgo === 'dfs' ? 'Último(Q)' : 'Primero(Q)'} = '${x}'. Sus vecinos son {${neighbors.join(', ')}}. El primer vecino no visitado en orden alfabético es '${nextY}': añadimos la arista (${x},${nextY}) al árbol T y metemos '${nextY}' al final de Q.`
+          });
+        } else {
+          if (searchAlgo === 'dfs') {
+            Q.pop();
+          } else {
+            Q.shift();
+          }
+          traceRows.push({
+            step: stepIdx,
+            add: '–',
+            rem: x,
+            qStr: Q.length ? Q.join('') : '∅'
+          });
+
+          steps.push({
+            Q: [...Q],
+            visited: [...visited],
+            treeEdges: [...treeEdges],
+            activeX: x,
+            inspectEdge: null,
+            traceRows: [...traceRows],
+            badge: `Quitar '${x}' de Q (${searchAlgo === 'dfs' ? 'Backtracking' : 'Nivel completado'})`,
+            explanation: `Inspeccionamos x = '${x}'. Todos sus vecinos {${neighbors.join(', ')}} ya han sido visitados. Eliminamos '${x}' de Q${Q.length ? ` y continuamos con '${searchAlgo === 'dfs' ? Q[Q.length - 1] : Q[0]}'` : ' (Q queda vacía)'}.`
+          });
+        }
+      }
+
+      steps.push({
+        Q: [],
+        visited: [...visited],
+        treeEdges: [...treeEdges],
+        activeX: null,
+        inspectEdge: null,
+        traceRows: [...traceRows],
+        badge: '¡Recorrido y Árbol Generador Completados!',
+        explanation: `La lista Q ha quedado vacía (Q = ∅). Como se han visitado los ${visited.length} vértices del grafo, confirmamos además que el grafo G es CONEXO y hemos obtenido su árbol generador T con ${treeEdges.length} aristas.`
+      });
+
+      return steps;
+    }
+
+    function computeTreeLayout(rootId, treeEdges) {
+      // Construye posiciones jerárquicas por niveles para dibujar el Árbol Generador T a la derecha
+      const childrenMap = {};
+      const allNodes = new Set([rootId]);
+      treeEdges.forEach(([u, v]) => {
+        if (!childrenMap[u]) childrenMap[u] = [];
+        childrenMap[u].push(v);
+        allNodes.add(u);
+        allNodes.add(v);
+      });
+
+      const levels = {};
+      const nodeLevel = {};
+      const queue = [{ id: rootId, lvl: 0 }];
+      nodeLevel[rootId] = 0;
+
+      while (queue.length > 0) {
+        const { id, lvl } = queue.shift();
+        if (!levels[lvl]) levels[lvl] = [];
+        levels[lvl].push(id);
+        (childrenMap[id] || []).forEach(ch => {
+          nodeLevel[ch] = lvl + 1;
+          queue.push({ id: ch, lvl: lvl + 1 });
+        });
+      }
+
+      const maxLvl = Math.max(...Object.keys(levels).map(Number), 1);
+      const coords = {};
+      Object.entries(levels).forEach(([lvlStr, ids]) => {
+        const lvl = Number(lvlStr);
+        const y = 38 + (lvl * Math.min(52, 225 / Math.max(maxLvl, 1)));
+        ids.forEach((id, i) => {
+          const x = ((i + 1) / (ids.length + 1)) * 360;
+          coords[id] = { x, y };
+        });
+      });
+
+      return coords;
+    }
+
+    function initSearchSimulation() {
+      stopAllAutoTimers();
+      populateSearchRootOptions();
+      searchSteps = buildSearchSteps();
+      searchCurrentStep = 0;
+      renderSearchStep();
+    }
+
+    function renderSearchStep() {
+      const gData = searchGraphs[searchPreset];
+      const step = searchSteps[searchCurrentStep];
+
+      document.getElementById('search-title').textContent =
+        searchAlgo === 'dfs'
+          ? 'Búsqueda en Profundidad (B.E.P. / DFS) — Orden Alfabético'
+          : 'Búsqueda en Anchura (B.E.A. / BFS) — Orden Alfabético';
+      document.getElementById('search-subtitle').innerHTML =
+        searchAlgo === 'dfs'
+          ? 'En cada iteración toma <strong class="text-indigo-700">x : Último(Q)</strong>. Avanza en profundidad siempre que sea posible y retrocede cuando se queda sin vecinos nuevos.'
+          : 'En cada iteración toma <strong class="text-emerald-700">x : Primero(Q)</strong>. Explora el grafo por capas o niveles de distancia desde la raíz.';
+
+      document.getElementById('search-step-counter').textContent = `${searchCurrentStep}/${searchSteps.length - 1}`;
+      document.getElementById('search-visited-counter').textContent = `${step.visited.length}/${gData.nodes.length}`;
+      document.getElementById('search-tree-root-label').textContent = `Raíz: ${searchRoot}`;
+      document.getElementById('search-step-badge').textContent = step.badge;
+      document.getElementById('search-active-x').textContent = step.activeX ? `Vértice activo x = '${step.activeX}'` : 'Fin del algoritmo';
+      document.getElementById('search-step-explanation').textContent = step.explanation;
+      document.getElementById('search-visit-order').textContent = step.visited.join(' → ');
+
+      // Pila/Cola visual Q
+      const roleBadge = document.getElementById('search-q-role-badge');
+      roleBadge.textContent = searchAlgo === 'dfs' ? 'Pila Q (x = Último)' : 'Cola Q (x = Primero)';
+      roleBadge.className = searchAlgo === 'dfs'
+        ? 'text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-amber-500 text-slate-950'
+        : 'text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-emerald-400 text-slate-950';
+
+      const qVisual = document.getElementById('search-q-visual');
+      if (step.Q.length === 0) {
+        qVisual.innerHTML = '<span class="text-slate-400">∅ (Vacía)</span>';
+      } else {
+        qVisual.innerHTML = step.Q.map((v, idx) => {
+          const isTarget = (searchAlgo === 'dfs' && idx === step.Q.length - 1) || (searchAlgo === 'bfs' && idx === 0);
+          return `<span class="px-2 py-0.5 rounded ${isTarget ? 'bg-indigo-500 text-white ring-2 ring-amber-300' : 'bg-slate-800 text-slate-200'}">${v}</span>`;
+        }).join('');
+      }
+
+      // 1. Dibujar Grafo Original G a la izquierda
+      const graphSvg = document.getElementById('search-graph-svg');
+      graphSvg.innerHTML = '';
+
+      // Conjuntos de aristas únicas
+      const drawnPairs = new Set();
+      Object.entries(gData.adj).forEach(([u, list]) => {
+        list.forEach(v => {
+          const key = [u, v].sort().join('-');
+          if (drawnPairs.has(key)) return;
+          drawnPairs.add(key);
+
+          const nu = gData.nodes.find(n => n.id === u);
+          const nv = gData.nodes.find(n => n.id === v);
+          const inTree = step.treeEdges.some(([a, b]) => (a === u && b === v) || (a === v && b === u));
+          const isInspecting = step.inspectEdge && ((step.inspectEdge[0] === u && step.inspectEdge[1] === v) || (step.inspectEdge[0] === v && step.inspectEdge[1] === u));
+
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', nu.x);
+          line.setAttribute('y1', nu.y);
+          line.setAttribute('x2', nv.x);
+          line.setAttribute('y2', nv.y);
+          line.setAttribute('stroke', isInspecting ? '#f59e0b' : inTree ? '#e11d48' : '#cbd5e1');
+          line.setAttribute('stroke-width', isInspecting ? '4.5' : inTree ? '3.5' : '2');
+          graphSvg.appendChild(line);
+        });
+      });
+
+      gData.nodes.forEach(node => {
+        const isVisited = step.visited.includes(node.id);
+        const inQ = step.Q.includes(node.id);
+        const isActive = step.activeX === node.id;
+
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+        if (isActive) {
+          const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          halo.setAttribute('cx', node.x);
+          halo.setAttribute('cy', node.y);
+          halo.setAttribute('r', '24');
+          halo.setAttribute('fill', 'none');
+          halo.setAttribute('stroke', '#f59e0b');
+          halo.setAttribute('stroke-width', '3');
+          g.appendChild(halo);
+        }
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', node.x);
+        circle.setAttribute('cy', node.y);
+        circle.setAttribute('r', '18');
+        circle.setAttribute('fill', isActive ? '#4f46e5' : inQ ? '#0f172a' : isVisited ? '#10b981' : '#ffffff');
+        circle.setAttribute('stroke', isVisited ? '#0f172a' : '#94a3b8');
+        circle.setAttribute('stroke-width', '2.2');
+        g.appendChild(circle);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', node.x);
+        text.setAttribute('y', node.y + 5);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', isVisited ? '#ffffff' : '#334155');
+        text.setAttribute('font-weight', '700');
+        text.setAttribute('font-size', '13');
+        text.textContent = node.id;
+        g.appendChild(text);
+
+        graphSvg.appendChild(g);
+      });
+
+      // 2. Dibujar Árbol Generador T a la derecha
+      const treeSvg = document.getElementById('search-tree-svg');
+      treeSvg.innerHTML = '';
+      const treeCoords = computeTreeLayout(searchRoot, step.treeEdges);
+
+      step.treeEdges.forEach(([u, v]) => {
+        const cu = treeCoords[u];
+        const cv = treeCoords[v];
+        if (!cu || !cv) return;
+        const isNew = step.inspectEdge && step.inspectEdge[0] === u && step.inspectEdge[1] === v;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', cu.x);
+        line.setAttribute('y1', cu.y);
+        line.setAttribute('x2', cv.x);
+        line.setAttribute('y2', cv.y);
+        line.setAttribute('stroke', isNew ? '#f59e0b' : '#4f46e5');
+        line.setAttribute('stroke-width', isNew ? '4' : '2.8');
+        treeSvg.appendChild(line);
+      });
+
+      Object.entries(treeCoords).forEach(([id, pt]) => {
+        const isRoot = id === searchRoot;
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', pt.x);
+        circle.setAttribute('cy', pt.y);
+        circle.setAttribute('r', '16');
+        circle.setAttribute('fill', isRoot ? '#f59e0b' : '#4f46e5');
+        circle.setAttribute('stroke', '#0f172a');
+        circle.setAttribute('stroke-width', '2');
+        g.appendChild(circle);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', pt.x);
+        text.setAttribute('y', pt.y + 4);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', isRoot ? '#0f172a' : '#ffffff');
+        text.setAttribute('font-weight', '800');
+        text.setAttribute('font-size', '12');
+        text.textContent = id;
+        g.appendChild(text);
+
+        treeSvg.appendChild(g);
+      });
+
+      // 3. Actualizar tabla Añadir | Quitar | Q
+      const tbody = document.getElementById('search-trace-tbody');
+      tbody.innerHTML = step.traceRows.map((r, idx) => `
+        <tr class="${idx === step.traceRows.length - 1 ? 'bg-indigo-50 font-bold' : ''}">
+          <td class="py-1.5 px-3 text-slate-400">${r.step}</td>
+          <td class="py-1.5 px-3 text-emerald-700 font-semibold">${r.add}</td>
+          <td class="py-1.5 px-3 text-rose-700 font-semibold">${r.rem}</td>
+          <td class="py-1.5 px-3 text-slate-900 font-bold">${r.qStr}</td>
+        </tr>
+      `).join('');
+      tbody.parentElement.scrollTop = tbody.parentElement.scrollHeight;
+
+      document.getElementById('search-btn-prev').disabled = searchCurrentStep === 0;
+      document.getElementById('search-btn-next').disabled = searchCurrentStep === searchSteps.length - 1;
+    }
+
+    function setSearchAlgo(algo) {
+      searchAlgo = algo;
+      document.getElementById('btn-search-dfs').className = algo === 'dfs'
+        ? 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm'
+        : 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200';
+      document.getElementById('btn-search-bfs').className = algo === 'bfs'
+        ? 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm'
+        : 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-700 hover:bg-slate-200';
+
+      // Ajustar raíz por defecto al ejercicio de clase (g para BEP, c para BEA en el grafo adj8)
+      const gData = searchGraphs[searchPreset];
+      searchRoot = algo === 'dfs' ? gData.defaultDfsRoot : gData.defaultBfsRoot;
+      initSearchSimulation();
+    }
+
+    function changeSearchGraphPreset(preset) {
+      searchPreset = preset;
+      const gData = searchGraphs[searchPreset];
+      searchRoot = searchAlgo === 'dfs' ? gData.defaultDfsRoot : gData.defaultBfsRoot;
+      initSearchSimulation();
+    }
+
+    function changeSearchRoot(rootVal) {
+      searchRoot = rootVal;
+      initSearchSimulation();
+    }
+
+    function searchNext() {
+      if (searchCurrentStep < searchSteps.length - 1) {
+        searchCurrentStep++;
+        renderSearchStep();
+      } else if (searchAutoTimer) {
+        searchToggleAuto();
+      }
+    }
+
+    function searchPrev() {
+      if (searchCurrentStep > 0) {
+        searchCurrentStep--;
+        renderSearchStep();
+      }
+    }
+
+    function searchReset() {
+      stopAllAutoTimers();
+      searchCurrentStep = 0;
+      renderSearchStep();
+    }
+
+    function searchToggleAuto() {
+      if (searchAutoTimer) {
+        clearInterval(searchAutoTimer);
+        searchAutoTimer = null;
+      } else {
+        if (searchCurrentStep === searchSteps.length - 1) searchCurrentStep = 0;
+        searchAutoTimer = setInterval(() => {
+          if (searchCurrentStep < searchSteps.length - 1) {
+            searchCurrentStep++;
+            renderSearchStep();
+          } else {
+            clearInterval(searchAutoTimer);
+            searchAutoTimer = null;
+            updateSearchAutoBtn();
+          }
+        }, 950);
+      }
+      updateSearchAutoBtn();
+    }
+
+    function updateSearchAutoBtn() {
+      const btn = document.getElementById('search-btn-auto');
+      if (searchAutoTimer) {
+        btn.innerHTML = '⏸ Pausar';
+        btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500 text-slate-950 shadow-sm transition';
+      } else {
+        btn.innerHTML = '▶ Reproducir automático';
+        btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition';
+      }
+    }
+
+    // Inicializar todas las vistas al cargar la página
+    window.onload = function () {
+      initSortSimulation();
+      initGreedySimulation();
+      initSearchSimulation();
+    };
+  </script>
+</body>
+</html>
